@@ -39,7 +39,13 @@ public class LecturerLogin extends Application {
                 if (lec != null) {
                     message.setStyle("-fx-text-fill: green;");
                     message.setText("Welcome, " + lec.getFullName() + "!");
-                    // Next step: open the LecturerDashboard here
+
+                    Stage dash = new Stage();
+                    dash.setTitle("TECLMS - Lecturer Portal");
+                    dash.setScene(new Scene(new LecturerDashboard(lec, dash), 1300, 800));
+                    dash.show();
+                    stage.close();
+                    
                 } else {
                     message.setStyle("-fx-text-fill: red;");
                     message.setText("Wrong username or password");
