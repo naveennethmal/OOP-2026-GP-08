@@ -22,6 +22,7 @@ public class LecturerDashboard extends BorderPane {
         content.setAlignment(Pos.TOP_LEFT);
         setCenter(content);
         navigate("Dashboard");
+
     }
 
     private VBox buildSidebar() {
@@ -72,6 +73,8 @@ public class LecturerDashboard extends BorderPane {
     private void navigate(String page) {
         Node view = switch (page) {
             case "Dashboard" -> homePage();
+            case "My Profile" -> new LecturerProfilePage(lecturer);
+            case "Notices" -> new LecturerNoticesPage();
             default -> placeholder(page);
         };
         content.getChildren().setAll(view);
