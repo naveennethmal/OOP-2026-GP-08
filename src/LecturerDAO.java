@@ -33,4 +33,19 @@ public class LecturerDAO {
         }
         return null;
     }
+    // Updates only the editable fields. Username and password are NOT in this query.
+    public void updateProfile(Lecturer l) throws SQLException {
+        String sql = "UPDATE users SET full_name = ?, email = ?, phone = ?, "
+                + "address = ?, profile_picture = ? WHERE user_id = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, l.getFullName());
+            ps.setString(2, l.getEmail());
+            ps.setString(3, l.getPhone());
+            ps.setString(4, l.getAddress());
+            ps.setString(5, l.getProfilePicture());
+            ps.setInt(6, l.getUserId());
+            ps.executeUpdate();
+        }
+    }
 }

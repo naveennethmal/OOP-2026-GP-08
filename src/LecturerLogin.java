@@ -45,7 +45,7 @@ public class LecturerLogin extends Application {
                     dash.setScene(new Scene(new LecturerDashboard(lec, dash), 1300, 800));
                     dash.show();
                     stage.close();
-                    
+
                 } else {
                     message.setStyle("-fx-text-fill: red;");
                     message.setText("Wrong username or password");
