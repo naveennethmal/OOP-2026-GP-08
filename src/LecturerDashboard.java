@@ -75,6 +75,7 @@ public class LecturerDashboard extends BorderPane {
             case "Dashboard" -> homePage();
             case "My Profile" -> new LecturerProfilePage(lecturer);
             case "Notices" -> new LecturerNoticesPage();
+            case "Student Details" -> new LecturerStudentsPage();
             default -> placeholder(page);
         };
         content.getChildren().setAll(view);
