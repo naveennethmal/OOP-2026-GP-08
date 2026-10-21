@@ -80,6 +80,7 @@ public class LecturerDashboard extends BorderPane {
             case "CA & Eligibility" -> new LecturerCAPage(lecturer);
             case "Attendance & Medical" -> new LecturerAttendancePage(lecturer);
             case "Grades & GPA" -> new LecturerGradesPage(lecturer);
+            case "CA & Eligibility" -> new LecturerEligibilityTabs(lecturer);
             default -> placeholder(page);
         };
         content.getChildren().setAll(view);
