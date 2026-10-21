@@ -72,7 +72,7 @@ public class LecturerDashboard extends BorderPane {
 
     private void navigate(String page) {
         Node view = switch (page) {
-            case "Dashboard" -> homePage();
+            case "Dashboard" -> new LecturerHomePage(lecturer, this::navigate);
             case "My Profile" -> new LecturerProfilePage(lecturer);
             case "Notices" -> new LecturerNoticesPage();
             case "Student Details" -> new LecturerStudentsPage();
