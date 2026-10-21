@@ -77,10 +77,10 @@ public class LecturerDashboard extends BorderPane {
             case "Notices" -> new LecturerNoticesPage();
             case "Student Details" -> new LecturerStudentsPage();
             case "Upload Marks" -> new LecturerMarksPage(lecturer);
-            case "CA & Eligibility" -> new LecturerCAPage(lecturer);
             case "Attendance & Medical" -> new LecturerAttendancePage(lecturer);
             case "Grades & GPA" -> new LecturerGradesPage(lecturer);
             case "CA & Eligibility" -> new LecturerEligibilityTabs(lecturer);
+            case "Course Materials" -> new LecturerMaterialsPage(lecturer);
             default -> placeholder(page);
         };
         content.getChildren().setAll(view);
