@@ -27,5 +27,5 @@ public class main_admin extends Application {
         Label sub = new Label("Admin Portal (UI Mode)");
         sub.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 12px;");
 
-        Label logoIcon = new Label("\uD83C\uDF93");
+
 
