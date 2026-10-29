@@ -81,4 +81,8 @@ public class main_admin extends Application {
     }
 }
 
-
+class RealLauncher {
+    public static void main(String[] args) {
+        Application.launch(main_admin.class, args);
+    }
+}
