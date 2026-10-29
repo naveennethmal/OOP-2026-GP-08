@@ -15,47 +15,63 @@ public class main_admin extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Database එකට කනෙක්ට් නොවී කෙලින්ම වැඩ කරන සරල Layout එකක් මෙතනින් හදනවා
-        BorderPane mockAdminApp = new BorderPane();
+        // ඩේටාබේස් එකට සම්බන්ධ නොවී ඔයාගේ ප්‍රොජෙක්ට් එකේ නියම ඇඩ්මින් UI එක (Layout) මෙතනින් සාදයි.
+        BorderPane adminLayout = new BorderPane();
 
+        // 1. Sidebar (පැති මෙනුව) නිර්මාණය කිරීම
         VBox side = new VBox();
-        side.setStyle("-fx-background-color: #1e293b; -fx-padding: 20px; -fx-spacing: 15px; -fx-pref-width: 260px;");
+        side.setStyle("-fx-background-color: #1e293b; -fx-padding: 24px; -fx-spacing: 16px; -fx-pref-width: 280px;");
 
+        Label logoIcon = new Label("\uD83C\uDF93");
+        logoIcon.setStyle("-fx-font-size: 32px;");
         Label brand = new Label("TECLMS");
-        brand.setStyle("-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;");
-        Label sub = new Label("Admin Portal (Offline Mode)");
+        brand.setStyle("-fx-text-fill: white; -fx-font-size: 22px; -fx-font-weight: bold;");
+        Label sub = new Label("Admin Portal (UI Mode)");
         sub.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 12px;");
 
-        side.getChildren().addAll(new VBox(5, brand, sub));
+        HBox branding = new HBox(14, logoIcon, new VBox(brand, sub));
+        branding.setAlignment(Pos.CENTER_LEFT);
+        side.getChildren().add(branding);
+
+        Label menuCaption = new Label("MENU");
+        menuCaption.setStyle("-fx-text-fill: #64748b; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 10px 0 0 0;");
+        side.getChildren().add(menuCaption);
 
         ToggleGroup g = new ToggleGroup();
-        String[][] menuItems = {
-                {"👤  Users"}, {"📘  Courses"}, {"🔔  Notices"},
-                {"🔑  Password requests"}, {"📅  Timetables"}
-        };
+        String[] tabs = {"👤  Users", "📘  Courses", "🔔  Notices", "🔑  Password requests", "📅  Timetables"};
 
-        for (String[] item : menuItems) {
-            ToggleButton b = new ToggleButton(item[0]);
+        for (String tabName : tabs) {
+            ToggleButton b = new ToggleButton(tabName);
             b.setToggleGroup(g);
-            b.setStyle("-fx-text-fill: #334155; -fx-font-size: 15px; -fx-pref-width: 220px; -fx-alignment: center-left; -fx-padding: 10px;");
+            b.setStyle("-fx-text-fill: #e2e8f0; -fx-background-color: transparent; -fx-font-size: 14px; -fx-pref-width: 240px; -fx-alignment: center-left; -fx-padding: 10px 12px; -fx-cursor: hand;");
             side.getChildren().add(b);
         }
 
-        mockAdminApp.setLeft(side);
+        if (!side.getChildren().isEmpty() && side.getChildren().get(2) instanceof ToggleButton) {
+            ((ToggleButton) side.getChildren().get(2)).setSelected(true);
+        }
 
-        // මැද ප්‍රධාන පිටුවට සාදරයෙන් පිළිගන්නා පණිවිඩය
-        VBox centerView = new VBox(10);
+        adminLayout.setLeft(side);
+
+        // 2. Main Center View (ප්‍රධාන මැද පිටුව)
+        VBox centerView = new VBox(15);
         centerView.setAlignment(Pos.CENTER);
+        centerView.setStyle("-fx-background-color: #f8fafc;");
+
         Label mainMsg = new Label("Welcome to TECLMS Admin Portal");
-        mainMsg.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
-        Label subMsg = new Label("Database එකක් නොමැතිව සාර්ථකව Run වී ඇත.");
+        mainMsg.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
+        Label subMsg = new Label("Database එකට සම්බන්ධ නොවී UI එක පමණක් සාර්ථකව Run වී ඇත.");
         subMsg.setStyle("-fx-font-size: 16px; -fx-text-fill: #64748b;");
-        centerView.getChildren().addAll(mainMsg, subMsg);
-        mockAdminApp.setCenter(centerView);
 
-        Scene scene = new Scene(mockAdminApp, 1200, 750);
+        Label hintMsg = new Label("💡 ඉහත මෙනු අයිතමයන් සහ Layout එක ඔයාගේ original project එකට අනුකූල වේ.");
+        hintMsg.setStyle("-fx-font-size: 13px; -fx-text-fill: #0284c7; -fx-background-color: #e0f2fe; -fx-padding: 8px 16px; -fx-background-radius: 5px;");
 
-        primaryStage.setTitle("TECLMS - Admin Portal (Database Bypass)");
+        centerView.getChildren().addAll(mainMsg, subMsg, hintMsg);
+        adminLayout.setCenter(centerView);
+
+        Scene scene = new Scene(adminLayout, 1200, 750);
+
+        primaryStage.setTitle("TECLMS - Admin Portal (UI Offline Preview)");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
