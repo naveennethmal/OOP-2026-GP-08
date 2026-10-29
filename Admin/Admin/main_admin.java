@@ -22,7 +22,4 @@ public class main_admin extends Application {
         VBox side = new VBox();
         side.setStyle("-fx-background-color: #1e293b; -fx-padding: 24px; -fx-spacing: 16px; -fx-pref-width: 280px;");
         logoIcon.setStyle("-fx-font-size: 32px;");
-        Label brand = new Label("TECLMS");
-        brand.setStyle("-fx-text-fill: white; -fx-font-size: 22px; -fx-font-weight: bold;");
-
 
