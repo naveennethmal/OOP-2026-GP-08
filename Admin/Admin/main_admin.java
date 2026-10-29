@@ -22,9 +22,3 @@ public class main_admin extends Application {
         VBox side = new VBox();
         side.setStyle("-fx-background-color: #1e293b; -fx-padding: 24px; -fx-spacing: 16px; -fx-pref-width: 280px;");
 
-        Label logoIcon = new Label("\uD83C\uDF93");
-        logoIcon.setStyle("-fx-font-size: 32px;");
-        Label brand = new Label("TECLMS");
-        brand.setStyle("-fx-text-fill: white; -fx-font-size: 22px; -fx-font-weight: bold;");
-        Label sub = new Label("Admin Portal (UI Mode)");
-        sub.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 12px;");
