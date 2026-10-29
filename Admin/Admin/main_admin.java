@@ -18,7 +18,7 @@ public class main_admin extends Application {
 
         BorderPane adminLayout = new BorderPane();
 
-        // 1. Sidebar (පැති මෙනුව) නිර්මාණය කිරීම
+
         VBox side = new VBox();
         side.setStyle("-fx-background-color: #1e293b; -fx-padding: 24px; -fx-spacing: 16px; -fx-pref-width: 280px;");
 
