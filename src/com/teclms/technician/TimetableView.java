@@ -60,7 +60,7 @@ public class TimetableView extends VBox {
             }
         }
         return grid;
-    }//
+    }
 
     private VBox slotCard(Slot s) {
         Label code = new Label(s.code());

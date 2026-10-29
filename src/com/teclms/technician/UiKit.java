@@ -54,17 +54,7 @@ public final class UiKit {
         return card;
     }
 
-    public static HBox statRow(Node... cards) {
-        HBox row = new HBox(16, cards);
-        for (Node c : cards) {
-            HBox.setHgrow(c, Priority.ALWAYS);
-            if (c instanceof Region r) {
-                r.setPrefWidth(10);
-                r.setMaxWidth(Double.MAX_VALUE);
-            }
-        }
-        return row;
-    }
+
 
     public static Button primaryButton(String text, String icon) {
         Button b = new Button(text, new FontIcon(icon));
