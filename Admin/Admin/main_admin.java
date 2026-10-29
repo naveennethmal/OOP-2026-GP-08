@@ -71,3 +71,10 @@ public class main_admin extends Application {
 
         Scene scene = new Scene(adminLayout, 1200, 750);
 
+        primaryStage.setTitle("TECLMS - Admin Portal (UI Offline Preview)");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+
+
