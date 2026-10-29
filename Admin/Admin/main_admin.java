@@ -14,5 +14,3 @@ import javafx.stage.Stage;
 public class main_admin extends Application {
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
-
