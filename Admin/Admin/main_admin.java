@@ -66,8 +66,5 @@ public class main_admin extends Application {
         Label hintMsg = new Label("💡 ඉහත මෙනු අයිතමයන් සහ Layout එක ඔයාගේ original project එකට අනුකූල වේ.");
         hintMsg.setStyle("-fx-font-size: 13px; -fx-text-fill: #0284c7; -fx-background-color: #e0f2fe; -fx-padding: 8px 16px; -fx-background-radius: 5px;");
 
-        centerView.getChildren().addAll(mainMsg, subMsg, hintMsg);
-        adminLayout.setCenter(centerView);
-
-        Scene scene = new Scene(adminLayout, 1200, 750);
+    cene = new Scene(adminLayout, 1200, 750);
 
