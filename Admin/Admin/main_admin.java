@@ -55,6 +55,6 @@ public class main_admin extends Application {
 
         // 2. Main Center View (ප්‍රධාන මැද පිටුව)
         VBox centerView = new VBox(15);
-        center View.setAlignment(Pos.CENTER);
+        centerView.setAlignment(Pos.CENTER);
         centerView.setStyle("-fx-background-color: #f8fafc;");
 
