@@ -12,5 +12,3 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class main_admin extends Application {
-
-    @Override
