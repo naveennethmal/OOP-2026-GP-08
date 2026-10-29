@@ -60,7 +60,7 @@ public class main_admin extends Application {
 
         Label mainMsg = new Label("Welcome to TECLMS Admin Portal");
         mainMsg.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
-        Label subMsg = new Label("Database එකට සම්බන්ධ නොවී UI එක පමණක් සාර්ථකව Run වී ඇත.");
+        Label subMsg = new Label("Database not connect withou run UI");
         subMsg.setStyle("-fx-font-size: 16px; -fx-text-fill: #64748b;");
 
         Label hintMsg = new Label("💡 ඉහත මෙනු අයිතමයන් සහ Layout එක ඔයාගේ original project එකට අනුකූල වේ.");
