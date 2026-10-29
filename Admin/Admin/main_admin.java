@@ -59,11 +59,6 @@ public class main_admin extends Application {
         centerView.setStyle("-fx-background-color: #f8fafc;");
 
         Label mainMsg = new Label("Welcome to TECLMS Admin Portal");
-        mainMsg.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
-        Label subMsg = new Label("Database not connect withou run UI");
-        subMsg.setStyle("-fx-font-size: 16px; -fx-text-fill: #64748b;");
-
-
 
 
 
