@@ -54,13 +54,6 @@ public class main_admin extends Application {
         adminLayout.setLeft(side);
 
 
-        VBox centerView = new VBox(15);
-        centerView.setAlignment(Pos.CENTER);
-        centerView.setStyle("-fx-background-color: #f8fafc;");
-
-        Label mainMsg = new Label("Welcome to TECLMS Admin Portal");
-
-
 
 
 
