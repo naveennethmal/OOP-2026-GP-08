@@ -18,7 +18,3 @@ public class main_admin extends Application {
         // ඩේටාබේස් එකට සම්බන්ධ නොවී ඔයාගේ ප්‍රොජෙක්ට් එකේ නියම ඇඩ්මින් UI එක (Layout) මෙතනින් සාදයි.
         BorderPane adminLayout = new BorderPane();
 
-        // 1. Sidebar (පැති මෙනුව) නිර්මාණය කිරීම
-        VBox side = new VBox();
-        side.setStyle("-fx-background-color: #1e293b; -fx-padding: 24px; -fx-spacing: 16px; -fx-pref-width: 280px;");
-
