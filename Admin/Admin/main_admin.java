@@ -76,5 +76,9 @@ public class main_admin extends Application {
         primaryStage.show();
     }
 
+    public static void main(String[] args) {
+        RealLauncher.main(args);
+    }
+}
 
 
