@@ -47,4 +47,8 @@ public class main_admin extends Application {
             side.getChildren().add(b);
         }
 
+        if (!side.getChildren().isEmpty() && side.getChildren().get(2) instanceof ToggleButton) {
+            ((ToggleButton) side.getChildren().get(2)).setSelected(true);
+        }
 
+        adminLayout.setLeft(side);
