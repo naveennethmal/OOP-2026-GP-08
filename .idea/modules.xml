@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/OOP-2026-GP-08.iml" filepath="$PROJECT_DIR$/.idea/OOP-2026-GP-08.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Admin/ftms-admin.iml" filepath="$PROJECT_DIR$/Admin/ftms-admin.iml" />
+    </modules>
+  </component>
+</project>
