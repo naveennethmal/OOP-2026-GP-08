@@ -38,23 +38,4 @@ public class main_admin extends Application {
         side.getChildren().add(menuCaption);
 
         ToggleGroup g = new ToggleGroup();
-        String[] tabs = {"👤  Users", "📘  Courses", "🔔  Notices", "🔑  Password requests", "📅  Timetables"};
-
-        for (String tabName : tabs) {
-            ToggleButton b = new ToggleButton(tabName);
-            b.setToggleGroup(g);
-            b.setStyle("-fx-text-fill: #e2e8f0; -fx-background-color: transparent; -fx-font-size: 14px; -fx-pref-width: 240px; -fx-alignment: center-left; -fx-padding: 10px 12px; -fx-cursor: hand;");
-            side.getChildren().add(b);
-        }
-
-        if (!side.getChildren().isEmpty() && side.getChildren().get(2) instanceof ToggleButton) {
-            ((ToggleButton) side.getChildren().get(2)).setSelected(true);
-        }
-
-        adminLayout.setLeft(side);
-
-        // 2. Main Center View (ප්‍රධාන මැද පිටුව)
-        VBox centerView = new VBox(15);
-        centerView.setAlignment(Pos.CENTER);
-        centerView.setStyle("-fx-background-color: #f8fafc;");
 
