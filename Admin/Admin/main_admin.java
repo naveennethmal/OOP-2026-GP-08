@@ -28,3 +28,8 @@ public class main_admin extends Application {
         brand.setStyle("-fx-text-fill: white; -fx-font-size: 22px; -fx-font-weight: bold;");
         Label sub = new Label("Admin Portal (UI Mode)");
         sub.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 12px;");
+
+        HBox branding = new HBox(14, logoIcon, new VBox(brand, sub));
+        branding.setAlignment(Pos.CENTER_LEFT);
+        side.getChildren().add(branding);
+
