@@ -19,7 +19,6 @@ public class main_admin extends Application {
         BorderPane adminLayout = new BorderPane();
 
 
-        VBox side = new VBox();
-        side.setStyle("-fx-background-color: #1e293b; -fx-padding: 24px; -fx-spacing: 16px; -fx-pref-width: 280px;");
+        VBox side = new VBox();side.setStyle("-fx-background-color: #1e293b; -fx-padding: 24px; -fx-spacing: 16px; -fx-pref-width: 280px;");
         logoIcon.setStyle("-fx-font-size: 32px;");
 
