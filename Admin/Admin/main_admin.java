@@ -9,7 +9,7 @@ public class main_admin extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         // එකම ෆෝල්ඩර් එකේ නිසා කෙලින්ම App කියලා විතරක් ගන්නවා
-        App adminApp = new App(() -> {
+        Admin adminApp = new App(() -> {
             System.out.println("Logging out from Admin Portal...");
             System.exit(0);
         });
