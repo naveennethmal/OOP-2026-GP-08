@@ -16,7 +16,3 @@ public class main_admin extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-        BorderPane adminLayout = new BorderPane();
-
-
-        VBox side = new VBox();side.setStyle("-fx-background-color: #1e293b; -fx-padding: 24px; -fx-spacing: 16px; -fx-pref-width: 280px;");
