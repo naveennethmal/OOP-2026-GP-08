@@ -13,3 +13,8 @@ import javafx.stage.Stage;
 
 public class main_admin extends Application {
 
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        // ඩේටාබේස් එකට සම්බන්ධ නොවී ඔයාගේ ප්‍රොජෙක්ට් එකේ නියම ඇඩ්මින් UI එක (Layout) මෙතනින් සාදයි.
+        BorderPane adminLayout = new BorderPane();
+
