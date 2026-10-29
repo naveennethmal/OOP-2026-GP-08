@@ -33,3 +33,9 @@ public class main_admin extends Application {
         branding.setAlignment(Pos.CENTER_LEFT);
         side.getChildren().add(branding);
 
+        Label menuCaption = new Label("MENU");
+        menuCaption.setStyle("-fx-text-fill: #64748b; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 10px 0 0 0;");
+        side.getChildren().add(menuCaption);
+
+        ToggleGroup g = new ToggleGroup();
+
