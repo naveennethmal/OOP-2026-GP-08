@@ -83,7 +83,7 @@ public class MainLayout extends BorderPane {
         });
         group.selectToggle(group.getToggles().get(0));
 
-        // User box + logout
+        // User box +
 
         Label initials = new Label("KP");
         initials.getStyleClass().add("user-initials");
