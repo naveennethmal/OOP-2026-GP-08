@@ -1,8 +1,10 @@
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import Student.Dashboard;
+import Technical_Officer.MainLayout;
 
-// Main does NOT extend Application, so no separate Launcher class is needed.
+
 public class Main {
 
     private static Scene scene;
@@ -11,23 +13,43 @@ public class Main {
         Application.launch(App.class, args);
     }
 
-    // Login screen ekata yanna
+
     public static void showLogin() {
-        scene.setRoot(new Login(Main::showDashboard));
+        scene.setRoot(new Login(
+                Main::showDashboard,
+                Main::showAdmin,
+                Main::showTechnicalOfficer,
+                Main::showLecturer));
     }
 
-    // Dashboard ekata yanna
+
     public static void showDashboard() {
-        scene.setRoot(new Dashboard());
+        scene.setRoot(new Dashboard(Main::showLogin));
+    }
+
+    public static void showAdmin() {
+        scene.setRoot(new Admin.App(Main::showLogin));
+    }
+
+    public static void showTechnicalOfficer() {
+        scene.setRoot(new MainLayout(Main::showLogin));
+    }
+
+    public static void showLecturer() {
+        scene.setRoot(new Lecturer.LecturerLayout(Main::showLogin));
     }
 
     public static class App extends Application {
 
         @Override
         public void start(Stage stage) {
-            scene = new Scene(new Login(Main::showDashboard), 1400, 800);
+            scene = new Scene(new Login(
+                    Main::showDashboard,
+                    Main::showAdmin,
+                    Main::showTechnicalOfficer,
+                    Main::showLecturer), 1400, 800);
             scene.getStylesheets().add(
-                    getClass().getResource("/style.css").toExternalForm());
+                    getClass().getResource("/Resources/style.css").toExternalForm());
 
             stage.setTitle("TECLMS - Student Portal");
             stage.setMinWidth(1100);
