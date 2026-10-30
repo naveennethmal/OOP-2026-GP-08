@@ -1,6 +1,11 @@
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import Common.Session;
+import Database.DBConnection;
+import Common.PasswordResetRequests;
+import Student.Ui;
+import Technical_Officer.MainLayout;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,8 +13,29 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Login extends HBox {
+    private final Runnable studentSuccess;
+    private final Runnable adminSuccess;
+    private final Runnable technicalOfficerSuccess;
+    private final Runnable lecturerSuccess;
 
     public Login(Runnable onSuccess) {
+        this(onSuccess, onSuccess, () -> {});
+    }
+
+    public Login(Runnable studentSuccess, Runnable adminSuccess) {
+        this(studentSuccess, adminSuccess, () -> {});
+    }
+
+    public Login(Runnable studentSuccess, Runnable adminSuccess, Runnable technicalOfficerSuccess) {
+        this(studentSuccess, adminSuccess, technicalOfficerSuccess, () -> {});
+    }
+
+    public Login(Runnable studentSuccess, Runnable adminSuccess, Runnable technicalOfficerSuccess,
+                 Runnable lecturerSuccess) {
+        this.studentSuccess = studentSuccess;
+        this.adminSuccess = adminSuccess;
+        this.technicalOfficerSuccess = technicalOfficerSuccess;
+        this.lecturerSuccess = lecturerSuccess;
 
         getStyleClass().add("login-root");
 
@@ -53,7 +79,7 @@ public class Login extends HBox {
         // ---------------- Right form card ----------------
 
         TextField id = new TextField();
-        id.setPromptText("e.g. IT2024/001");
+        id.setPromptText("Enter your username");
         id.getStyleClass().add("field");
 
         PasswordField pw = new PasswordField();
@@ -66,13 +92,23 @@ public class Login extends HBox {
         Region sp = new Region();
         HBox.setHgrow(sp, Priority.ALWAYS);
 
-        Label forgot = Ui.text(
-                "Forgot password?",
-                "link"
-        );
+        Label error = Ui.text("", "login-error");
+        error.setVisible(false);
+        error.setManaged(false);
 
+        Label forgot = Ui.text("Lost password?", "link");
         forgot.setOnMouseClicked(e -> {
-            // TODO: forgot password page
+            String username = id.getText().trim();
+            if (username.isEmpty()) {
+                showError(error, "Enter your username, then select Lost password?");
+                return;
+            }
+            try {
+                PasswordResetRequests.submit(username);
+                showNotice(error, "Lost-password message sent to the administrator.");
+            } catch (Exception ex) {
+                showError(error, "Could not send your message: " + ex.getMessage());
+            }
         });
 
         HBox options = new HBox(
@@ -82,15 +118,6 @@ public class Login extends HBox {
         );
 
         options.setAlignment(Pos.CENTER_LEFT);
-
-        // Error message
-        Label error = Ui.text(
-                "",
-                "login-error"
-        );
-
-        error.setVisible(false);
-        error.setManaged(false);
 
         // Login button
         Button login = new Button("Sign In");
@@ -103,15 +130,15 @@ public class Login extends HBox {
 
         Runnable attempt = () -> {
 
-            String studentId = id.getText().trim();
+            String username = id.getText().trim();
             String password = pw.getText();
 
             // Empty fields
-            if (studentId.isEmpty() || password.isEmpty()) {
+            if (username.isEmpty() || password.isEmpty()) {
 
                 showError(
                         error,
-                        "Please enter your Student ID and password."
+                        "Please enter your username and password."
                 );
 
                 return;
@@ -119,18 +146,11 @@ public class Login extends HBox {
 
             // Database authentication
             String sql = """
-                    SELECT
-                        u.user_id,
-                        u.full_name,
-                        u.role,
-                        ug.reg_no,
-                        ug.status
+                    SELECT u.user_id, u.full_name, u.role, ug.reg_no, ug.status
                     FROM users u
-                    JOIN undergraduates ug
-                        ON u.user_id = ug.user_id
-                    WHERE ug.reg_no = ?
-                      AND u.password = ?
-                      AND u.role = 'Undergraduate'
+                    LEFT JOIN undergraduates ug ON u.user_id = ug.user_id
+                    WHERE u.password = ?
+                      AND u.user_name = ?
                     """;
 
             try (
@@ -141,8 +161,8 @@ public class Login extends HBox {
                             connection.prepareStatement(sql)
             ) {
 
-                statement.setString(1, studentId);
-                statement.setString(2, password);
+                statement.setString(1, password);
+                statement.setString(2, username);
 
                 ResultSet result = statement.executeQuery();
 
@@ -161,8 +181,9 @@ public class Login extends HBox {
                     String status =
                             result.getString("status");
 
-                    // Check student status
-                    if (!status.equalsIgnoreCase("Active")) {
+                    if ("Undergraduate".equalsIgnoreCase(result.getString("role"))
+                            && (status == null || (!status.equalsIgnoreCase("Active")
+                            && !status.equalsIgnoreCase("Batch Missed")))) {
 
                         showError(
                                 error,
@@ -188,17 +209,24 @@ public class Login extends HBox {
                             "Student Name: " + fullName
                     );
 
-                    // Save logged-in student
                     Session.setUser(userId,regNo,fullName);
 
-                    // Go to Dashboard
-                    onSuccess.run();
+                    String role = result.getString("role");
+                    if ("Admin".equalsIgnoreCase(role)) {
+                        adminSuccess.run();
+                    } else if ("Technical Officer".equalsIgnoreCase(role)) {
+                        technicalOfficerSuccess.run();
+                    } else if ("Lecturer".equalsIgnoreCase(role)) {
+                        lecturerSuccess.run();
+                    } else {
+                        studentSuccess.run();
+                    }
 
                 } else {
 
                     showError(
                             error,
-                            "Invalid Student ID or password."
+                            "Invalid username or password."
                     );
 
                     pw.clear();
@@ -239,7 +267,7 @@ public class Login extends HBox {
                 new VBox(
                         6,
                         Ui.text(
-                                "Student ID",
+                                "Username",
                                 "field-label"
                         ),
                         id
@@ -287,6 +315,8 @@ public class Login extends HBox {
             String message
     ) {
 
+        label.getStyleClass().remove("login-success");
+        if (!label.getStyleClass().contains("login-error")) label.getStyleClass().add("login-error");
         label.setText(
                 "⚠  " + message
         );
@@ -294,5 +324,12 @@ public class Login extends HBox {
         label.setVisible(true);
         label.setManaged(true);
     }
-}
 
+    private void showNotice(Label label, String message) {
+        label.getStyleClass().remove("login-error");
+        if (!label.getStyleClass().contains("login-success")) label.getStyleClass().add("login-success");
+        label.setText(message);
+        label.setVisible(true);
+        label.setManaged(true);
+    }
+}
