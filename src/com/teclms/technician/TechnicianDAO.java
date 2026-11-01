@@ -76,6 +76,37 @@ public final class TechnicianDAO {
         Db.update("UPDATE users SET profile_picture = NULL WHERE user_id = ?", Session.getUserId());
     }
 
+    // ---------- notices ----------
+
+    // Newest first. is_new = 1 when published within the last 7 days.
+    public static List<Map<String, Object>> notices() throws Exception {
+        return Db.query("""
+                SELECT title, description,
+                       DATE_FORMAT(published_date, '%Y-%m-%d') AS published,
+                       DATEDIFF(CURDATE(), published_date) <= 7 AS is_new
+                FROM notices
+                ORDER BY published_date DESC, notice_id DESC
+                """);
+    }
+
+    // ---------- timetable ----------
+
+    public static List<Map<String, Object>> departments() throws Exception {
+        return Db.query("SELECT department_id, department_name FROM departments ORDER BY department_name");
+    }
+
+    public static List<Map<String, Object>> timetable(int departmentId, String level, String semester)
+            throws Exception {
+        return Db.query("""
+                SELECT t.day, t.location, t.session_type, c.course_code, c.course_name,
+                       TIME_FORMAT(t.start_time, '%H:%i') AS start_time,
+                       TIME_FORMAT(t.end_time, '%H:%i') AS end_time
+                FROM time_table t
+                JOIN courses c ON c.course_code = t.course_code
+                WHERE c.department_id = ? AND c.level = ? AND c.semester = ?
+                ORDER BY t.start_time
+                """, departmentId, level, semester);
+    }
 
     // ---------- attendance ----------
 
@@ -147,6 +178,66 @@ public final class TechnicianDAO {
     public static int clearAttendance(String courseCode) throws Exception {
         return Db.update("DELETE FROM attendance WHERE course_code = ? AND department_id = ?",
                 courseCode, deptId());
+    }
+
+    // ---------- medicals ----------
+
+    // "REG NO - Name" of the active undergraduates of the department (for the add form)
+    public static List<String> students() throws Exception {
+        List<String> list = new ArrayList<>();
+        for (Map<String, Object> row : Db.query("""
+                SELECT u.reg_no, us.full_name
+                FROM undergraduates u JOIN users us ON us.user_id = u.user_id
+                WHERE u.department_id = ? AND u.status = 'Active'
+                ORDER BY u.reg_no
+                """, deptId())) {
+            list.add(row.get("reg_no") + " - " + row.get("full_name"));
+        }
+        return list;
+    }
+
+    //  All medicals of the department, including the ones students submitted themselves.
+    public static List<Map<String, Object>> medicals() throws Exception {
+        return Db.query("""
+                SELECT m.medical_id, m.reg_no, us.full_name, m.reason, m.document,
+                       DATE_FORMAT(COALESCE(m.medical_start_date, m.medical_date), '%Y-%m-%d') AS start_date,
+                       DATE_FORMAT(COALESCE(m.medical_end_date, m.medical_date), '%Y-%m-%d') AS end_date,
+                       COALESCE(m.course_code, '-') AS course_code,
+                       COALESCE(NULLIF(m.approval_status, ''), 'Pending') AS approval_status
+                FROM medical m
+                JOIN undergraduates u ON u.reg_no = m.reg_no
+                JOIN users us ON us.user_id = u.user_id
+                WHERE u.department_id = ?
+                ORDER BY COALESCE(m.medical_start_date, m.medical_date) DESC, m.medical_id DESC
+                """, deptId());
+    }
+
+    public static void addMedical(String regNo, String courseCode, LocalDate start, LocalDate end,
+                                  String reason, String status, String document) throws Exception {
+        Db.update("""
+                INSERT INTO medical (reg_no, tech_id, course_code, medical_date, medical_start_date,
+                                     medical_end_date, reason, approval_status, document)
+                VALUES (?, (SELECT tech_id FROM technical_officers WHERE user_id = ?), ?, ?, ?, ?, ?, ?, ?)
+                """, regNo, Session.getUserId(), courseCode, Date.valueOf(start), Date.valueOf(start),
+                Date.valueOf(end), reason, status, document);
+    }
+
+    // A null document keeps the old certificate
+    public static void updateMedical(int medicalId, String regNo, String courseCode, LocalDate start,
+                                     LocalDate end, String reason, String status, String document)
+            throws Exception {
+        Db.update("""
+                UPDATE medical
+                SET reg_no = ?, course_code = ?, medical_date = ?, medical_start_date = ?,
+                    medical_end_date = ?, reason = ?, approval_status = ?,
+                    document = COALESCE(?, document)
+                WHERE medical_id = ?
+                """, regNo, courseCode, Date.valueOf(start), Date.valueOf(start), Date.valueOf(end),
+                reason, status, document, medicalId);
+    }
+
+    public static void deleteMedical(int medicalId) throws Exception {
+        Db.update("DELETE FROM medical WHERE medical_id = ?", medicalId);
     }
 
     // ---------- dashboard ----------
