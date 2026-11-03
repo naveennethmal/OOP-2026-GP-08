@@ -261,8 +261,7 @@ public final class Academic {
         }
         public double gradePoint() {
             if (!isGraded() || grade().startsWith("E")) return 0;
-            if (gradeOverride != null) return pointForGrade(gradeOverride);
-            return retake ? pointFor(45) : pointFor(total());
+            return pointForGrade(grade());
         }
 
         public String caPercentText() { return String.format("%.1f%%", caPercent()); }

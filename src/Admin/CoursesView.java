@@ -162,7 +162,7 @@ public class CoursesView extends CrudView {
         Db.update("DELETE FROM courses WHERE course_code=?", row.get("course_code"));
     }
 
-    private static String value(Map<String, Object> row, String key) {
+    public static String value(Map<String, Object> row, String key) {
         Object value = row.get(key);
         return value == null ? "" : value.toString();
     }

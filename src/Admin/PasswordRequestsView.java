@@ -1,118 +1,118 @@
 package Admin;
 
 import Common.PasswordResetRequests;
-import Common.PasswordResetRequests.Request;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.transformation.FilteredList;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import java.util.List;
-import java.util.Locale;
+public class PasswordRequestsView extends BorderPane {
 
-public class PasswordRequestsView extends VBox {
-    private final TableView<Request> table = new TableView<>();
+    private final TableView<PasswordResetRequests.Request> table = new TableView<>();
     private final Label message = new Label();
-    private final TextField search = new TextField();
-    private List<Request> allRequests = List.of();
+    private final Label pendingCount = new Label();
 
     public PasswordRequestsView() {
-        getStyleClass().add("page");
-        setSpacing(16);
+        setStyle("-fx-background-color: #F3F6FC;");
+        setPadding(new javafx.geometry.Insets(22));
 
-        Label title = new Label("Lost-password requests");
-        title.getStyleClass().add("page-title");
-        Label subtitle = new Label("Students can send their username to the administrator if they lose their password.");
-        subtitle.getStyleClass().add("page-sub");
-        search.setPromptText("Search username, message or status");
-        search.setPrefWidth(360);
-        search.setMinWidth(260);
-        search.setPrefHeight(44);
-        search.getStyleClass().add("admin-search");
-        search.textProperty().addListener((observable, oldValue, newValue) -> filterRequests());
+        Label title = new Label("Password Reset Requests");
+        title.setStyle("-fx-font-size: 23px; -fx-font-weight: bold; -fx-text-fill: #172554;");
 
-        table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
-        table.getStyleClass().add("password-requests-table");
-        TableColumn<Request, String> username = column("Username", Request::username, 220);
-        username.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
-        table.getColumns().add(username);
-        table.getColumns().add(column("Message", Request::message, 380));
-        table.getColumns().add(column("Requested", Request::createdAt, 240));
-        TableColumn<Request, String> status = column("Status", Request::status, 150);
-        status.setCellFactory(column -> new TableCell<>() {
-            @Override
-            protected void updateItem(String value, boolean empty) {
-                super.updateItem(value, empty);
-                setText(empty ? null : value);
-                setStyle(empty ? "" : "Pending".equalsIgnoreCase(value)
-                        ? "-fx-text-fill: #b45309; -fx-font-weight: bold; -fx-font-size: 14px;"
-                        : "-fx-text-fill: #15803d; -fx-font-weight: bold; -fx-font-size: 14px;");
-            }
-        });
-        table.getColumns().add(status);
-        table.setPlaceholder(new Label("No lost-password requests."));
-        VBox.setVgrow(table, Priority.ALWAYS);
+        Label subtitle = new Label("Review password help requests submitted from the login page.");
+        subtitle.setStyle("-fx-text-fill: #64748B; -fx-font-size: 13px;");
 
         Button refresh = new Button("Refresh");
-        refresh.getStyleClass().add("btn-ghost");
-        refresh.setOnAction(event -> load());
-        Button resolve = new Button("Mark resolved");
-        resolve.getStyleClass().add("btn-primary");
-        resolve.setOnAction(event -> resolveSelected());
-        HBox actions = new HBox(10, refresh, resolve);
+        refresh.setOnAction(event -> reload());
+        refresh.setStyle("-fx-background-color: #2563EB; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-padding: 9px 14px; -fx-background-radius: 7px;");
 
-        HBox heading = new HBox(16, title, new Region(), search);
-        HBox.setHgrow(heading.getChildren().get(1), Priority.ALWAYS);
+        HBox heading = new HBox(12, new VBox(5, title, subtitle), pendingCount, refresh);
         heading.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        getChildren().addAll(heading, subtitle, actions, table, message);
-        load();
+        HBox.setHgrow(heading.getChildren().get(0), Priority.ALWAYS);
+
+        configureTable();
+        message.setStyle("-fx-text-fill: #B91C1C; -fx-font-weight: bold;");
+
+        VBox content = new VBox(14, heading, message, table);
+        VBox.setVgrow(table, Priority.ALWAYS);
+        setCenter(content);
+        reload();
     }
 
-    private TableColumn<Request, String> column(String title, java.util.function.Function<Request, String> value,
-                                                 double width) {
-        TableColumn<Request, String> column = new TableColumn<>(title);
-        column.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(
-                value.apply(cell.getValue())));
+    private void configureTable() {
+        table.getStyleClass().add("password-requests-table");
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setPlaceholder(new Label("No password reset requests."));
+
+        addColumn("Username", PasswordResetRequests.Request::username, 130);
+        addColumn("Message", PasswordResetRequests.Request::message, 280);
+        addColumn("Submitted", PasswordResetRequests.Request::createdAt, 180);
+        addColumn("Status", PasswordResetRequests.Request::status, 100);
+
+        TableColumn<PasswordResetRequests.Request, Void> action = new TableColumn<>("Action");
+        action.setMinWidth(130);
+        action.setMaxWidth(150);
+        action.setSortable(false);
+        action.setCellFactory(column -> new javafx.scene.control.TableCell<>() {
+            private final Button resolve = new Button("Mark resolved");
+
+            {
+                resolve.setOnAction(event -> {
+                    PasswordResetRequests.Request request = getTableRow().getItem();
+                    if (request != null) {
+                        resolve(request);
+                    }
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                PasswordResetRequests.Request request = empty ? null : getTableRow().getItem();
+                setGraphic(request != null && "Pending".equalsIgnoreCase(request.status())
+                        ? resolve : null);
+            }
+        });
+        table.getColumns().add(action);
+    }
+
+    private void addColumn(String title, java.util.function.Function<PasswordResetRequests.Request, String> value,
+                           double width) {
+        TableColumn<PasswordResetRequests.Request, String> column = new TableColumn<>(title);
+        column.setCellValueFactory(data -> new SimpleStringProperty(value.apply(data.getValue())));
         column.setPrefWidth(width);
-        return column;
+        table.getColumns().add(column);
     }
 
-    private void load() {
+    private void reload() {
         try {
-            List<Request> requests = PasswordResetRequests.list();
-            allRequests = requests;
-            filterRequests();
+            var requests = PasswordResetRequests.list();
+            table.setItems(FXCollections.observableArrayList(requests));
+            long pending = requests.stream()
+                    .filter(request -> "Pending".equalsIgnoreCase(request.status()))
+                    .count();
+            pendingCount.setText(pending + " pending");
+            pendingCount.setStyle("-fx-text-fill: #B45309; -fx-font-weight: bold;");
             message.setText("");
-        } catch (Exception e) {
-            message.setText("Could not load lost-password requests: " + e.getMessage());
+        } catch (Exception ex) {
+            message.setText("Could not load password reset requests: " + ex.getMessage());
         }
     }
 
-    private void filterRequests() {
-        String query = search.getText() == null ? "" : search.getText().trim().toLowerCase(Locale.ROOT);
-        FilteredList<Request> filtered = new FilteredList<>(
-                FXCollections.observableArrayList(allRequests),
-                request -> query.isEmpty()
-                        || request.username().toLowerCase(Locale.ROOT).contains(query)
-                        || request.message().toLowerCase(Locale.ROOT).contains(query)
-                        || request.status().toLowerCase(Locale.ROOT).contains(query));
-        table.setItems(filtered);
-    }
-
-    private void resolveSelected() {
-        Request request = table.getSelectionModel().getSelectedItem();
-        if (request == null) {
-            message.setText("Select a request first.");
-            return;
-        }
+    private void resolve(PasswordResetRequests.Request request) {
         try {
             PasswordResetRequests.markResolved(request.id());
-            load();
-            message.setText("Request marked as resolved.");
-        } catch (Exception e) {
-            message.setText("Could not update the request: " + e.getMessage());
+            reload();
+        } catch (Exception ex) {
+            message.setText("Could not update the request: " + ex.getMessage());
         }
     }
+
 }

@@ -1,17 +1,24 @@
 package Technical_Officer;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.shape.Circle;
 import javafx.util.Callback;
 
-import java.sql.SQLException;
-
+import java.io.File;
+import java.util.function.Function;
 
 public final class UiKit {
 
     private UiKit() {}
+
+    // ---------- layout pieces ----------
 
     static Label icon(String name) {
         Label icon = new Label();
@@ -72,6 +79,15 @@ public final class UiKit {
         return row;
     }
 
+    public static VBox field(String label, Node input) {
+        Label l = new Label(label);
+        l.getStyleClass().add("form-label");
+        if (input instanceof Region r) r.setMaxWidth(Double.MAX_VALUE);
+        return new VBox(6, l, input);
+    }
+
+    // ---------- buttons and pills ----------
+
     public static Button primaryButton(String text, String icon) {
         Button b = new Button(text, icon(icon));
         b.getStyleClass().add("btn-primary");
@@ -84,21 +100,14 @@ public final class UiKit {
         return b;
     }
 
-//    tone:ok/warm/bad/purple
+    /** tone: ok / warn / bad / info / purple / muted */
     public static Label pill(String text, String tone) {
         Label p = new Label(text);
         p.getStyleClass().addAll("pill", "pill-" + tone);
         return p;
     }
 
-    public static VBox field(String label, Node input) {
-        Label l = new Label(label);
-        l.getStyleClass().add("form-label");
-        if (input instanceof Region r) r.setMaxWidth(Double.MAX_VALUE);
-        return new VBox(6, l, input);
-    }
-
-    //Maps a status text to a pill colour.
+    // Maps a status text to a pill colour.
     public static String toneFor(String status) {
         return switch (status) {
             case "Eligible", "Approved", "Present" -> "ok";
@@ -109,7 +118,14 @@ public final class UiKit {
         };
     }
 
-    // Table cell factory that shows the cell text as a coloured pill.
+    // ---------- tables ----------
+
+    public static <S> TableColumn<S, String> column(String title, Function<S, String> getter) {
+        TableColumn<S, String> col = new TableColumn<>(title);
+        col.setCellValueFactory(d -> new SimpleStringProperty(getter.apply(d.getValue())));
+        return col;
+    }
+
     public static <S> Callback<TableColumn<S, String>, TableCell<S, String>> pillCells() {
         return col -> new TableCell<>() {
             @Override
@@ -120,8 +136,48 @@ public final class UiKit {
         };
     }
 
-    /** Red message label for a database error (used when a page cannot load its data). */
-    public static Label errorLabel(String message, SQLException e) {
+    // ---------- avatar ----------
+
+    public static String initialsOf(String fullName) {
+        if (fullName == null || fullName.isBlank()) return "?";
+        String[] parts = fullName.trim().split("\\s+");
+        String first = parts[0].substring(0, 1);
+        String last = parts.length > 1 ? parts[parts.length - 1].substring(0, 1) : "";
+        return (first + last).toUpperCase();
+    }
+
+    public static void setAvatar(Circle circle, Label initials, String name, String picturePath) {
+        initials.setText(initialsOf(name));
+        circle.setFill(Color.web("#2563eb"));
+        boolean hasPhoto = false;
+        if (picturePath != null && !picturePath.isBlank() && new File(picturePath).isFile()) {
+            double size = circle.getRadius() * 2;
+            Image image = new Image(new File(picturePath).toURI().toString(), size, size, true, true);
+            if (!image.isError()) {
+                circle.setFill(new ImagePattern(image));
+                hasPhoto = true;
+            }
+        }
+        initials.setVisible(!hasPhoto);
+    }
+
+    // ---------- messages ----------
+
+    public static void info(String message) {
+        new Alert(Alert.AlertType.INFORMATION, message).show();
+    }
+
+    public static void warn(String message) {
+        new Alert(Alert.AlertType.WARNING, message).show();
+    }
+
+    public static void showError(String message, Exception e) {
+        System.err.println(message + " " + e.getMessage());
+        new Alert(Alert.AlertType.ERROR, message + "\n" + e.getMessage()).show();
+    }
+
+
+    public static Label errorLabel(String message, Exception e) {
         System.err.println(message + " " + e.getMessage());
         Label l = new Label(message + " " + e.getMessage());
         l.setWrapText(true);
@@ -129,14 +185,7 @@ public final class UiKit {
         return l;
     }
 
-    /** Adds the database error message to a page. */
-    public static void showLoadError(Pane page, SQLException e) {
+    public static void showLoadError(Pane page, Exception e) {
         page.getChildren().add(errorLabel("Could not load data from the database.", e));
-    }
-
-    /** Pop-up for a database error caused by a button click. */
-    public static void showError(String message, SQLException e) {
-        System.err.println(message + " " + e.getMessage());
-        new Alert(Alert.AlertType.ERROR, message + "\n" + e.getMessage()).show();
     }
 }

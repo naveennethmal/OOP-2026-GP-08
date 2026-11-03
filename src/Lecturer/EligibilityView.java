@@ -44,14 +44,14 @@ public class EligibilityView extends VBox {
     // end exam tab
     private final ObservableList<EndResult> endData = FXCollections.observableArrayList();
     private final TextField endSearch = searchField("Search by name or registration number");
-    private final ComboBox<String> endStatus = statusBox("All", "Pass", "EC", "Pending");
+    private final ComboBox<String> endStatus = statusBox("All", "Pass", "EE", "Pending");
     private final TableView<EndResult> endTable = table("Select a course", 300);
 
     private record EndResult(String regNo, String name, String batch, Double mark) {
         String markText() { return mark == null ? "-" : String.format("%.2f%%", mark); }
         String status() {
             if (mark == null) return "Pending";
-            return mark >= Academic.END_EXAM_PASS ? "Pass" : "EC";
+            return mark >= Academic.END_EXAM_PASS ? "Pass" : "EE";
         }
     }
 

@@ -2,46 +2,43 @@ package Technical_Officer;
 
 import Common.Session;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.Group;
-import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 
-import java.io.File;
-import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/** Side bar and content area */
+import static Technical_Officer.TechnicianDAO.text;
+
+/** Side bar (menu, user box, logout) and the content area. */
 public class MainLayout extends BorderPane {
 
     private final StackPane content = new StackPane();
-    private final Runnable onLogout;
-    private Circle sidebarAvatarCircle;
-    private Label sidebarInitials;
-    private Label sidebarName;
+    private final Circle avatar = new Circle(22, Color.web("#2563eb"));
+    private final Label initials = new Label("TO");
+    private final Label userName = new Label("Technical Officer");
 
     public MainLayout(Runnable onLogout) {
-        this.onLogout = onLogout;
         getStyleClass().add("app-root");
 
-        // pages are created every time you open them, so they always show the latest data from the database
+        // Pages are created each time they are opened, so they always show the latest data.
         Map<String, Supplier<Node>> pages = new LinkedHashMap<>();
-        pages.put("Dashboard",  () -> scroll(new DashboardView()));
+        pages.put("Dashboard", () -> scroll(new DashboardView()));
+        pages.put("My profile", () -> scroll(new ProfileView(this::refreshUserBox)));
         pages.put("Attendance", () -> scroll(new AttendanceView()));
-        pages.put("Medicals",   () -> scroll(new MedicalView()));
-        pages.put("Notices",    () -> scroll(new NoticesView()));
-        pages.put("Timetable",  () -> scroll(new TimetableView()));
-        pages.put("My profile", () -> scroll(new ProfileView(this::refreshSidebarProfile)));
+        pages.put("Medicals", () -> scroll(new MedicalView()));
+        pages.put("Notices", () -> scroll(new NoticesView()));
+        pages.put("Timetable", () -> scroll(new TimetableView()));
 
-        setLeft(buildSidebar(pages));
+        setLeft(buildSidebar(pages, onLogout));
         setCenter(content);
+        refreshUserBox();
     }
 
     private ScrollPane scroll(Node page) {
@@ -51,8 +48,8 @@ public class MainLayout extends BorderPane {
         return sp;
     }
 
-    private VBox buildSidebar(Map<String, Supplier<Node>> pages) {
-        // Brand
+    private VBox buildSidebar(Map<String, Supplier<Node>> pages, Runnable onLogout) {
+        // brand
         Label logoIcon = new Label("🎓");
         logoIcon.getStyleClass().add("logo-icon");
         Label title = new Label("TECLMS");
@@ -65,71 +62,49 @@ public class MainLayout extends BorderPane {
         Label menu = new Label("MENU");
         menu.getStyleClass().add("menu-caption");
 
-        // Navigation
-        String[][] items = {
-                {"🏠", "Dashboard"},
-                {"👤", "My profile"},
-                {"✅", "Attendance"},
-                {"➕", "Medicals"},
-                {"🔔", "Notices"},
-                {"📅", "Timetable"}
-        };
-
+        // navigation: one toggle button per page
+        Map<String, String> emojis = Map.of("Dashboard", "🏠", "My profile", "👤", "Attendance", "✅",
+                "Medicals", "➕", "Notices", "🔔", "Timetable", "📅");
         ToggleGroup group = new ToggleGroup();
         VBox nav = new VBox(4);
-        for (String[] item : items) {
-            ToggleButton b = new ToggleButton(item[0] + "  " + item[1]);
+        for (String pageName : pages.keySet()) {
+            ToggleButton b = new ToggleButton(emojis.get(pageName) + "  " + pageName);
             b.getStyleClass().add("menu-item");
             b.setMaxWidth(Double.MAX_VALUE);
             b.setAlignment(Pos.CENTER_LEFT);
-            b.setUserData(item[1]);
+            b.setUserData(pageName);
             b.setToggleGroup(group);
             nav.getChildren().add(b);
         }
-
         group.selectedToggleProperty().addListener((obs, oldT, newT) -> {
             if (newT == null) {
-                oldT.setSelected(true);           // never leave nothing selected
-            } else {
-                if (oldT instanceof ToggleButton previous) {
-                    previous.getStyleClass().remove("menu-item-active");
-                }
-                if (newT instanceof ToggleButton selected) {
-                    selected.getStyleClass().add("menu-item-active");
-                }
-                content.getChildren().setAll(pages.get((String) newT.getUserData()).get());
+                oldT.setSelected(true);                       // never leave nothing selected
+                return;
             }
+            if (oldT != null) oldT.getToggleGroup().getToggles().forEach(
+                    t -> ((ToggleButton) t).getStyleClass().remove("menu-item-active"));
+            ((ToggleButton) newT).getStyleClass().add("menu-item-active");
+            content.getChildren().setAll(pages.get((String) newT.getUserData()).get());
         });
         group.selectToggle(group.getToggles().get(0));
 
-        // User box + logout
-
-        ProfileDAO.TechnicianProfile profile = null;
-        try {
-            profile = ProfileDAO.get();
-        } catch (SQLException e) {
-            System.err.println("Could not load the user: " + e.getMessage());
-        }
-
-        sidebarInitials = new Label("TO");
-        sidebarInitials.getStyleClass().add("user-initials");
-        sidebarAvatarCircle = new Circle(22, Color.web("#2563eb"));
-        StackPane avatar = new StackPane(sidebarAvatarCircle, sidebarInitials);
-        avatar.getStyleClass().add("user-avatar");
-        sidebarName = new Label("Technical Officer");
-        sidebarName.getStyleClass().add("user-name");
-        sidebarName.setMaxWidth(Double.MAX_VALUE);
-        sidebarName.setTextOverrun(OverrunStyle.ELLIPSIS);
+        // user box
+        initials.getStyleClass().add("user-initials");
+        StackPane avatarPane = new StackPane(avatar, initials);
+        avatarPane.getStyleClass().add("user-avatar");
+        userName.getStyleClass().add("user-name");
+        userName.setMaxWidth(Double.MAX_VALUE);
+        userName.setTextOverrun(OverrunStyle.ELLIPSIS);
         Label role = new Label("Technical Officer");
         role.getStyleClass().add("user-role");
-        VBox identity = new VBox(0, sidebarName, role);
+        VBox identity = new VBox(0, userName, role);
         HBox.setHgrow(identity, Priority.ALWAYS);
-        HBox user = new HBox(10, avatar, identity);
+        HBox user = new HBox(10, avatarPane, identity);
         user.setAlignment(Pos.CENTER_LEFT);
         user.setMaxWidth(Double.MAX_VALUE);
         user.getStyleClass().add("user-box");
-        if (profile != null) setSidebarProfile(profile);
 
+        // logout
         SVGPath logoutIcon = new SVGPath();
         logoutIcon.setContent("M497 273L329 441c-15 15-41 4.5-41-17v-96H152c-13.3 0-24-10.7-24-24v-96c0-13.3 "
                 + "10.7-24 24-24h136V88c0-21.4 25.9-32 41-17l168 168c9.3 9.4 9.3 24.6 0 34zM192 436v-40c0-6.6"
@@ -156,29 +131,14 @@ public class MainLayout extends BorderPane {
         return sidebar;
     }
 
-    private void refreshSidebarProfile() {
+    /** Loads the name and photo of the logged-in officer into the user box (also called after a profile save). */
+    private void refreshUserBox() {
         try {
-            setSidebarProfile(ProfileDAO.get());
-        } catch (SQLException e) {
-            UiKit.showError("Could not refresh the sidebar profile.", e);
-        }
-    }
-
-    private void setSidebarProfile(ProfileDAO.TechnicianProfile profile) {
-        sidebarName.setText(profile.fullName());
-        sidebarInitials.setText(profile.initials());
-        sidebarInitials.setVisible(true);
-        sidebarAvatarCircle.setFill(Color.web("#2563eb"));
-        String picture = profile.picture();
-        if (picture == null || picture.isBlank()) return;
-        File imageFile = new File(picture);
-        if (!imageFile.isFile()) return;
-        Image image = new Image(imageFile.toURI().toString(), 44, 44, true, true);
-        if (!image.isError()) {
-            sidebarAvatarCircle.setFill(new ImagePattern(image));
-            sidebarInitials.setVisible(false);
-        } else {
-            sidebarInitials.setVisible(true);
+            Map<String, Object> profile = TechnicianDAO.profile();
+            userName.setText(text(profile.get("full_name")));
+            UiKit.setAvatar(avatar, initials, text(profile.get("full_name")), text(profile.get("profile_picture")));
+        } catch (Exception e) {
+            System.err.println("Could not load the user: " + e.getMessage());
         }
     }
 }

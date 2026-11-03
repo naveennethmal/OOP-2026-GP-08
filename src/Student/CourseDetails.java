@@ -15,9 +15,7 @@ import java.awt.Desktop;
 import java.io.File;
 import java.net.URI;
 
-/**
- * My Courses page: enrolled course list (left) and selected course details (right).
- */
+
 public class CourseDetails extends VBox {
 
     private record Material(String title, String type, String date, String filePath) {}

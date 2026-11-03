@@ -1,32 +1,27 @@
 package Technical_Officer;
 
-import Technical_Officer.ProfileDAO.TechnicianProfile;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
 
 import java.io.File;
-import java.sql.SQLException;
+import java.util.Map;
 
-/** Username and password are shown but locked; everything else can be edited. */
+import static Technical_Officer.TechnicianDAO.text;
+
+// Username and password are shown but locked; everything else can be edited.
 public class ProfileView extends VBox {
 
-    private TechnicianProfile profile;
+    private Map<String, Object> profile;
     private String pickedPhoto;                       // new photo chosen but not saved yet
     private final Runnable onProfileChange;
 
     private final Circle avatar = new Circle(48, Color.web("#2563eb"));
     private final Label initials = new Label();
     private final Label nameLabel = new Label();
-
-    public ProfileView() {
-        this(() -> {});
-    }
 
     public ProfileView(Runnable onProfileChange) {
         this.onProfileChange = onProfileChange;
@@ -35,33 +30,22 @@ public class ProfileView extends VBox {
         getChildren().add(UiKit.pageHeader("My profile", "Update your personal details"));
 
         try {
-            profile = ProfileDAO.get();
+            profile = TechnicianDAO.profile();
             HBox body = new HBox(18, buildProfileCard(), buildFormCard());
             body.setFillHeight(false);
             getChildren().add(body);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             UiKit.showLoadError(this, e);
         }
     }
 
     private void showPhoto(String path) {
-        initials.setText(profile.initials());
-        if (path != null && !path.isBlank()) {
-            File file = new File(path);
-            if (file.isFile()) {
-                avatar.setFill(new ImagePattern(new Image(file.toURI().toString())));
-                initials.setVisible(false);
-                return;
-            }
-        }
-        avatar.setFill(Color.web("#2563eb"));
-        initials.setVisible(true);
+        UiKit.setAvatar(avatar, initials, text(profile.get("full_name")), path);
     }
 
     private VBox buildProfileCard() {
         initials.getStyleClass().add("avatar-text");
-        StackPane picture = new StackPane(avatar, initials);
-        showPhoto(profile.picture());
+        showPhoto(text(profile.get("profile_picture")));
 
         Button change = UiKit.ghostButton("Change photo", "fas-camera");
         change.setOnAction(e -> {
@@ -77,23 +61,23 @@ public class ProfileView extends VBox {
         Button remove = UiKit.ghostButton("Remove photo", "fas-trash");
         remove.setOnAction(e -> {
             try {
-                ProfileDAO.removePicture();
-                profile = ProfileDAO.get();
+                TechnicianDAO.removePicture();
+                profile = TechnicianDAO.profile();
                 pickedPhoto = null;
-                showPhoto(profile.picture());
+                showPhoto(text(profile.get("profile_picture")));
                 onProfileChange.run();
-            } catch (SQLException ex) {
+            } catch (Exception ex) {
                 UiKit.showError("Could not remove the profile photo.", ex);
             }
         });
-        HBox photoActions = new HBox(8, change, remove);
 
-        nameLabel.setText(profile.fullName());
+        nameLabel.setText(text(profile.get("full_name")));
         nameLabel.getStyleClass().add("profile-name");
-        Label dept = new Label(profile.department());
+        Label dept = new Label(text(profile.get("department_name")));
         dept.getStyleClass().add("hint");
 
-        VBox card = UiKit.card(picture, nameLabel, UiKit.pill("Technical Officer", "info"), dept, photoActions);
+        VBox card = UiKit.card(new StackPane(avatar, initials), nameLabel,
+                UiKit.pill("Technical Officer", "info"), dept, new HBox(8, change, remove));
         card.setAlignment(Pos.TOP_CENTER);
         card.setPrefWidth(280);
         card.setMinWidth(280);
@@ -101,12 +85,13 @@ public class ProfileView extends VBox {
     }
 
     private VBox buildFormCard() {
-        TextField fullName = new TextField(profile.fullName());
-        TextField email = new TextField(profile.email());
-        TextField phone = new TextField(profile.phone());
-        TextField address = new TextField(profile.address());
+        TextField fullName = new TextField();
+        TextField email = new TextField();
+        TextField phone = new TextField();
+        TextField address = new TextField();
+        fillForm(fullName, email, phone, address);
 
-        TextField username = new TextField(profile.username());
+        TextField username = new TextField(text(profile.get("user_name")));
         username.setDisable(true);
         PasswordField password = new PasswordField();
         password.setText("********");
@@ -133,38 +118,39 @@ public class ProfileView extends VBox {
         Button save = UiKit.primaryButton("Save changes", "fas-save");
         save.setOnAction(e -> {
             if (fullName.getText().isBlank() || email.getText().isBlank()) {
-                new Alert(Alert.AlertType.WARNING, "Full name and email cannot be empty.").show();
+                UiKit.warn("Full name and email cannot be empty.");
                 return;
             }
-
             try {
-                ProfileDAO.save(fullName.getText().trim(), email.getText().trim(),
+                TechnicianDAO.saveProfile(fullName.getText().trim(), email.getText().trim(),
                         phone.getText().trim(), address.getText().trim(), pickedPhoto);
-                profile = ProfileDAO.get();
+                profile = TechnicianDAO.profile();
                 pickedPhoto = null;
-                nameLabel.setText(profile.fullName());
-                initials.setText(profile.initials());
-                showPhoto(profile.picture());
+                nameLabel.setText(text(profile.get("full_name")));
+                showPhoto(text(profile.get("profile_picture")));
                 onProfileChange.run();
-                new Alert(Alert.AlertType.INFORMATION, "Profile updated.").show();
-            } catch (SQLException ex) {
+                UiKit.info("Profile updated.");
+            } catch (Exception ex) {
                 UiKit.showError("Could not update the profile.", ex);
             }
         });
         Button reset = UiKit.ghostButton("Reset", "fas-undo");
         reset.setOnAction(e -> {
-            fullName.setText(profile.fullName());
-            email.setText(profile.email());
-            phone.setText(profile.phone());
-            address.setText(profile.address());
+            fillForm(fullName, email, phone, address);
             pickedPhoto = null;
-            showPhoto(profile.picture());
+            showPhoto(text(profile.get("profile_picture")));
         });
-        HBox buttons = new HBox(10, save, reset);
 
-        VBox card = UiKit.card(UiKit.cardTitle("Personal details"), grid, note, buttons);
+        VBox card = UiKit.card(UiKit.cardTitle("Personal details"), grid, note, new HBox(10, save, reset));
         HBox.setHgrow(card, Priority.ALWAYS);
         card.setMaxWidth(Double.MAX_VALUE);
         return card;
+    }
+
+    private void fillForm(TextField fullName, TextField email, TextField phone, TextField address) {
+        fullName.setText(text(profile.get("full_name")));
+        email.setText(text(profile.get("email")));
+        phone.setText(text(profile.get("phone")));
+        address.setText(text(profile.get("address")));
     }
 }

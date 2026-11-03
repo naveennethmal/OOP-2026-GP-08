@@ -1,19 +1,21 @@
 package Technical_Officer;
 
-import Technical_Officer.NoticeDAO.Notice;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-/** Read-only: technical officers can only see notices. */
+import static Technical_Officer.TechnicianDAO.text;
+import static Technical_Officer.TechnicianDAO.toInt;
+
+
 public class NoticesView extends VBox {
 
-    private final List<Notice> notices = new ArrayList<>();
+    private final List<Map<String, Object>> notices = new ArrayList<>();
     private final VBox list = new VBox(14);
 
     public NoticesView() {
@@ -30,8 +32,8 @@ public class NoticesView extends VBox {
                 list);
 
         try {
-            notices.addAll(NoticeDAO.list());
-        } catch (SQLException e) {
+            notices.addAll(TechnicianDAO.notices());
+        } catch (Exception e) {
             UiKit.showLoadError(this, e);
         }
         render("");
@@ -40,8 +42,9 @@ public class NoticesView extends VBox {
     private void render(String query) {
         String k = query.toLowerCase().trim();
         list.getChildren().clear();
-        for (Notice n : notices) {
-            if (k.isEmpty() || n.title().toLowerCase().contains(k) || n.body().toLowerCase().contains(k)) {
+        for (Map<String, Object> n : notices) {
+            if (k.isEmpty() || text(n.get("title")).toLowerCase().contains(k)
+                    || text(n.get("description")).toLowerCase().contains(k)) {
                 list.getChildren().add(card(n));
             }
         }
@@ -51,22 +54,31 @@ public class NoticesView extends VBox {
             list.getChildren().add(none);
         }
     }
+    private static String categoryOf(String title) {
+        String t = title.toLowerCase();
+        if (t.contains("exam")) return "Exam";
+        if (t.contains("meeting") || t.contains("event")) return "Event";
+        return "General";
+    }
 
-    private VBox card(Notice n) {
-        Label title = new Label(n.title());
-        title.getStyleClass().add("notice-title");
-        Label category = UiKit.pill(n.category(), n.category().equals("Exam") ? "bad"
-                : n.category().equals("Event") ? "purple" : "info");
-        Label date = new Label(n.date());
+    private VBox card(Map<String, Object> n) {
+        String title = text(n.get("title"));
+        String category = categoryOf(title);
+
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("notice-title");
+        Label categoryPill = UiKit.pill(category, category.equals("Exam") ? "bad"
+                : category.equals("Event") ? "purple" : "info");
+        Label date = new Label(text(n.get("published")));
         date.getStyleClass().add("hint");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox top = new HBox(10, title, category, spacer, date);
+        HBox top = new HBox(10, titleLabel, categoryPill, spacer, date);
         top.setAlignment(Pos.CENTER_LEFT);
-        if (n.isNew()) top.getChildren().add(2, UiKit.pill("NEW", "ok"));
+        if (toInt(n.get("is_new")) == 1) top.getChildren().add(2, UiKit.pill("NEW", "ok"));
 
-        Label body = new Label(n.body());
+        Label body = new Label(text(n.get("description")));
         body.setWrapText(true);
         body.getStyleClass().add("notice-body");
         return UiKit.card(top, body);

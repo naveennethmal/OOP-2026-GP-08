@@ -14,10 +14,6 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 
-import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.DayOfWeek;
-import java.util.stream.IntStream;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -551,7 +547,7 @@ public class Dashboard extends BorderPane {
             stats.getChildren().forEach(node ->
                     HBox.setHgrow(node, Priority.ALWAYS));
 
-            return new VBox(18, stats, calendarCard());
+            return new VBox(18, stats, recentNoticesCard());
         } catch (Exception ex) {
             return new VBox(
                     12,
@@ -578,123 +574,35 @@ public class Dashboard extends BorderPane {
         return card;
     }
 
-    private VBox calendarCard() {
-        GridPane calendar = new GridPane();
-        calendar.setHgap(10);
-        calendar.setVgap(10);
-        calendar.setMaxWidth(Double.MAX_VALUE);
-
-        YearMonth current = YearMonth.now();
-        ComboBox<String> monthSelector = new ComboBox<>();
-        monthSelector.getItems().addAll(
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December");
-        monthSelector.setValue(current.getMonth().name().charAt(0)
-                + current.getMonth().name().substring(1).toLowerCase());
-        monthSelector.setButtonCell(new ListCell<>() {
-            @Override protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty ? "" : item);
-                setStyle("-fx-text-fill: #111827; -fx-font-size: 16px; -fx-font-weight: bold;");
+    private VBox recentNoticesCard() {
+        VBox card = new VBox(12, text("Recent notices", "card-title"));
+        card.getStyleClass().add("card");
+        try {
+            List<Map<String, Object>> notices = Db.query(
+                    "SELECT title, published_date, description FROM notices "
+                            + "ORDER BY published_date DESC, notice_id DESC LIMIT 3");
+            if (notices.isEmpty()) {
+                card.getChildren().add(text("No notices are available.", "muted-small"));
+            } else {
+                for (Map<String, Object> notice : notices) {
+                    Label title = text(noticeValue(notice, "title"), "notice-title");
+                    title.setWrapText(true);
+                    Label date = text(noticeValue(notice, "published_date"), "muted-small");
+                    Label description = text(noticeValue(notice, "description"), "notice-desc");
+                    description.setWrapText(true);
+                    card.getChildren().addAll(new VBox(4, title, date, description), new Separator());
+                }
             }
-        });
-        monthSelector.setEditable(false);
-        monthSelector.setPromptText("Select month");
-        monthSelector.setPrefWidth(150);
-        monthSelector.setMinWidth(150);
-        monthSelector.setPrefHeight(45);
-        monthSelector.getStyleClass().add("calendar-selector");
-        monthSelector.getSelectionModel().select(monthSelector.getValue());
-
-        ComboBox<Integer> yearSelector = new ComboBox<>();
-        IntStream.rangeClosed(current.getYear() - 5, current.getYear() + 5)
-                .forEach(yearSelector.getItems()::add);
-        yearSelector.getSelectionModel().select(current.getYear());
-        yearSelector.setButtonCell(new ListCell<>() {
-            @Override protected void updateItem(Integer item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? "" : item.toString());
-                setStyle("-fx-text-fill: #111827; -fx-font-size: 16px; -fx-font-weight: bold;");
-            }
-        });
-        yearSelector.setEditable(false);
-        yearSelector.setPromptText("Select year");
-        yearSelector.setPrefWidth(125);
-        yearSelector.setMinWidth(125);
-        yearSelector.setPrefHeight(45);
-        yearSelector.getStyleClass().add("calendar-selector");
-        yearSelector.setValue(current.getYear());
-
-        Runnable refreshCalendar = () -> {
-            String selectedMonth = monthSelector.getValue();
-            Integer selectedYear = yearSelector.getValue();
-            int monthNumber = monthSelector.getItems().indexOf(selectedMonth) + 1;
-            if (selectedMonth == null || selectedYear == null || monthNumber < 1) return;
-            populateCalendar(calendar, YearMonth.of(selectedYear, monthNumber));
-        };
-        monthSelector.setOnAction(event -> refreshCalendar.run());
-        yearSelector.setOnAction(event -> refreshCalendar.run());
-
-        VBox monthField = new VBox(
-                6,
-                text("Month", "calendar-selector-label"),
-                monthSelector);
-        VBox yearField = new VBox(
-                6,
-                text("Year", "calendar-selector-label"),
-                yearSelector);
-        HBox selectors = new HBox(16, monthField, yearField);
-        selectors.setAlignment(Pos.BOTTOM_LEFT);
-        selectors.getStyleClass().add("calendar-selectors");
-
-        populateCalendar(calendar, current);
-
-        VBox body = new VBox(12, selectors, calendar);
-        body.getStyleClass().add("calendar-body");
-        VBox result = new VBox(16, text("📅  Calendar", "card-title"), body);
-        result.getStyleClass().add("card");
-        return result;
+        } catch (Exception ex) {
+            card.getChildren().add(text("Unable to load notices: " + ex.getMessage(), "err"));
+        }
+        makeClickable(card, "Notices");
+        return card;
     }
 
-    private void populateCalendar(GridPane calendar, YearMonth month) {
-        calendar.getChildren().clear();
-        calendar.getColumnConstraints().clear();
-
-        LocalDate firstDay = month.atDay(1);
-        LocalDate today = LocalDate.now();
-        String[] dayNames = {"Monday", "Tuesday", "Wednesday",
-                "Thursday", "Friday", "Saturday", "Sunday"};
-        for (int column = 0; column < dayNames.length; column++) {
-            Label day = text(dayNames[column], "calendar-day-header");
-            day.setMaxWidth(Double.MAX_VALUE);
-            day.setAlignment(Pos.CENTER);
-            calendar.add(day, column, 0);
-            GridPane.setHgrow(day, Priority.ALWAYS);
-        }
-
-        int startColumn = firstDay.getDayOfWeek().getValue() - DayOfWeek.MONDAY.getValue();
-        for (int dayNumber = 1; dayNumber <= month.lengthOfMonth(); dayNumber++) {
-            LocalDate date = month.atDay(dayNumber);
-            int position = startColumn + dayNumber - 1;
-            int column = position % 7;
-            int row = position / 7 + 1;
-
-            Label day = text(String.valueOf(dayNumber), "calendar-day");
-            day.setMaxWidth(Double.MAX_VALUE);
-            day.setMinHeight(54);
-            day.setAlignment(Pos.CENTER);
-            if (date.equals(today)) {
-                day.getStyleClass().add("calendar-day-today");
-            }
-            calendar.add(day, column, row);
-            GridPane.setHgrow(day, Priority.ALWAYS);
-        }
-
-        for (int column = 0; column < 7; column++) {
-            ColumnConstraints constraints = new ColumnConstraints();
-            constraints.setPercentWidth(100.0 / 7);
-            calendar.getColumnConstraints().add(constraints);
-        }
+    private static String noticeValue(Map<String, Object> notice, String key) {
+        Object value = notice.get(key);
+        return value == null ? "-" : value.toString();
     }
 
     private static int number(String sql, Object... parameters) throws Exception {

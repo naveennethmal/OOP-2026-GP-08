@@ -8,12 +8,7 @@ import javafx.scene.layout.VBox;
 import java.sql.Time;
 import java.util.*;
 
-/**
- * Timetable with clash prevention:
- *  - a hall is offered only if no other lecture overlaps the chosen slot (it frees up when that lecture ends)
- *  - a lecturer cannot be in two lectures at the same time
- * Overlap rule: existing.start < new.end AND existing.end > new.start (back-to-back slots are allowed).
- */
+
 public class TimetableView extends CrudView {
     private static boolean timetableSchemaPrepared;
     private final ComboBox<Item> course = new ComboBox<>(items(
