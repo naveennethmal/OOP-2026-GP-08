@@ -56,15 +56,15 @@ public final class Academic {
 
         public int withMedical() { return attended + covered; }
 
-        // integer maths, so "exactly 80%" is never lost to rounding
+        // check 80 or above
         public boolean eligible() { return total > 0 && withMedical() * 100 >= ATTENDANCE_PASS * total; }
 
-        private double pct(int n) { return total == 0 ? 0 : n * 100.0 / total; }
+        private double pct(int n) { return total == 0 ? 0 : n * 100.0 / total; } //calculate the precenteage
 
         public String sessionsText() { return attended + " / " + total; }
-        public String rawText() { return String.format("%.1f%%", pct(attended)); }
-        public String finalText() { return String.format("%.1f%%", pct(withMedical())); }
-        public String status() { return eligible() ? "Eligible" : "Not Eligible"; }
+        public String rawText() { return String.format("%.1f%%", pct(attended)); } //precentage without the medical
+        public String finalText() { return String.format("%.1f%%", pct(withMedical())); }//precentage with the medical
+        public String status() { return eligible() ? "Eligible" : "Not Eligible"; } 
     }
 
     // -------------------------------------------------------------------- CA
