@@ -3,10 +3,7 @@ package Lecturer;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Pure calculation rules (no database, no screens):
- * attendance eligibility, CA eligibility, overall eligibility, grades and GPA.
- */
+
 public final class Academic {
     private Academic() {}
 
@@ -15,7 +12,7 @@ public final class Academic {
     public static final double END_EXAM_PASS = 35.0;    // percent mark
     public static final int SESSIONS_PER_COMPONENT = 15;
 
-    // ---------------------------------------------------------------- grades
+    // grades
 
     // Row i means: marks >= MIN_MARKS[i] gets GRADES[i] and POINTS[i]
     private static final double[] MIN_MARKS = {85, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 0};
