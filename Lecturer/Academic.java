@@ -17,7 +17,6 @@ public final class Academic {
 
     // ---------------------------------------------------------------- grades
 
-    // *** CHECK THESE 3 ARRAYS AGAINST UGC CIRCULAR 12-2024 ***
     // Row i means: marks >= MIN_MARKS[i] gets GRADES[i] and POINTS[i]
     private static final double[] MIN_MARKS = {85, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 0};
     private static final String[] GRADES = {"A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "E"};
