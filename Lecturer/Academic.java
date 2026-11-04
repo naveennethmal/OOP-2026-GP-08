@@ -71,10 +71,10 @@ public final class Academic {
 
     /** One assessment of one student. mark == null means "not uploaded yet". */
     public record CaPart(String name, String type, double weight, Double mark) {
-        public double contribution() { return mark == null ? 0 : mark / 100.0 * weight; }
-        public String weightText() { return String.format("%.2f%%", weight); }
-        public String markText() { return mark == null ? "-" : String.format("%.2f", mark); }
-        public String contributionText() { return String.format("%.2f", contribution()); }
+        public double contribution() { return mark == null ? 0 : mark / 100.0 * weight; } //convert marks to ca marks
+        public String weightText() { return String.format("%.2f%%", weight); } //show weight as a string
+        public String markText() { return mark == null ? "-" : String.format("%.2f", mark); } //show the student mark
+        public String contributionText() { return String.format("%.2f", contribution()); } //show the contribution as a string
     }
 
     /** CA result of one student in one course. */
