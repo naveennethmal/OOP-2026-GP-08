@@ -35,13 +35,10 @@ public final class Academic {
         return 0;
     }
 
-    // ------------------------------------------------------------ attendance
+    // attendance
 
-    /**
-     * How many sessions a student should have attended: 15 per component.
-     * courseType is courses.theory_practical ("Theory", "Practical" or "Theory/Practical").
-     * component is "Combined", "Theory" or "Practical".
-     */
+    //calculate sessions for a subjectt
+    
     public static int sessionsFor(String courseType, String component) {
         int theory = courseType.contains("Theory") ? 1 : 0;
         int practical = courseType.contains("Practical") ? 1 : 0;
