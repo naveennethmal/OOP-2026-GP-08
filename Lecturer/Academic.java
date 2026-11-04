@@ -100,6 +100,12 @@ public final class Academic {
 
         private boolean hasMidAndProject() { return practicalCourse; }
 
+        // Calculates the total CA points earned by a student.
+        // 1. Selects quizzes with entered marks and sorts them in descending order.
+        // 2. Uses the best two quizzes (5% each) for non-paper courses.
+        // 3. Calculates Mid Exam and Project contributions based on the course type.
+        // 4. Calculates the average assignment contribution (5%) for non-paper courses.
+        // 5. Returns the sum of quiz, core, and assignment points.
         public double earned() {
             List<Double> quizzes = parts.stream()
                     .filter(p -> p.type().equalsIgnoreCase("Quiz") && p.mark() != null)
