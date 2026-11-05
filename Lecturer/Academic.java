@@ -223,6 +223,13 @@ public final class Academic {
             return caOk() && endOk() ? "Eligible" : "Not Eligible";
         }
 
+        // Provides the reasons for the student's current academic status.
+        // 1. Checks the student's overall status.
+        // 2. Returns a success message if all requirements are met.
+        // 3. Checks attendance eligibility and adds a reason if attendance is below 80%.
+        // 4. Checks whether CA marks are fully uploaded or below the required pass mark.
+        // 5. Checks whether the End Exam mark is uploaded and meets the pass mark.
+        // 6. Combines all the reasons into a single String and returns it.
         public String reason() {
             String status = status();
             if (status.equals("Eligible")) return "Attendance, CA and end exam requirements met";
