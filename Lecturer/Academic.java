@@ -179,7 +179,14 @@ public final class Academic {
         public String enteredText() { return entered() + " / " + required(); } //show the assesment that entered marks
     }
 
-    /** CA points out of 40: practical courses use mid+project (25%+15%); other courses use quizzes, core and assignments. */
+    // Calculates the total CA points based on the course type.
+    // 1. For practical courses, calculates Mid Exam (25%) and Project (15%) contributions.
+    // 2. For non-practical courses, collects the entered Quiz marks.
+    // 3. Sorts Quiz marks in descending order and selects the best two quizzes.
+    // 4. Calculates Quiz points using 5% weight for each selected quiz.
+    // 5. Selects the Mid Exam mark or Project mark as the core assessment.
+    // 6. Calculates the core assessment (25%) and Assignment (5%) contributions.
+    // 7. Returns the total CA points by adding all contributions.
     public static double caPoints(Double quiz1, Double quiz2, Double quiz3, Double mid, Double project,
                                   Double assignmentAverage, boolean practicalCourse) {
         if (practicalCourse) {
