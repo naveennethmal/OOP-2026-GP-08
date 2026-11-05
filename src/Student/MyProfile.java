@@ -21,6 +21,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +33,8 @@ public class MyProfile extends VBox {
 
     // Phone field
     private TextField phoneField;
+    private TextField nicField;
+    private Button editNicButton;
 
     // Profile picture
     private ImageView profileImageView;
@@ -106,7 +111,10 @@ public class MyProfile extends VBox {
                 "Department",
                 "Batch",
                 "Level",
-                "Status"
+                "Status",
+                "NIC Number",
+                "Birthday",
+                "Days until next birthday"
         };
 
         for (int i = 0; i < labels.length; i++) {
@@ -127,6 +135,13 @@ public class MyProfile extends VBox {
 
                 // Only contact number can be edited
                 phoneField.setEditable(false);
+            }
+
+            if (i >= 10) {
+                tf.setEditable(false);
+            } else if (i == 9) {
+                nicField = tf;
+                nicField.setEditable(false);
             }
 
             fields.add(tf);
@@ -181,6 +196,18 @@ public class MyProfile extends VBox {
             }
         });
 
+        editNicButton = new Button("Edit NIC Number");
+        editNicButton.getStyleClass().add("primary-btn");
+        editNicButton.setOnAction(e -> {
+            if (!nicField.isEditable()) {
+                nicField.setEditable(true);
+                nicField.requestFocus();
+                editNicButton.setText("Save NIC Number");
+            } else {
+                updateNicNumber();
+            }
+        });
+
         VBox photoCard = new VBox(14);
         photoCard.getStyleClass().add("card");
         photoCard.setAlignment(Pos.TOP_CENTER);
@@ -212,7 +239,8 @@ public class MyProfile extends VBox {
         HBox formActions = new HBox(10, editContact, resetContact);
         formActions.setAlignment(Pos.CENTER_LEFT);
 
-        VBox formBody = new VBox(18, form, Ui.text("Only your contact number can be updated here. Contact an administrator to change other details.", "muted"), formActions);
+        formActions.getChildren().add(editNicButton);
+        VBox formBody = new VBox(18, form, Ui.text("Your contact number and NIC number can be updated here. Contact an administrator to change other details.", "muted"), formActions);
         VBox detailsCard = Ui.card("Personal details", formBody);
         detailsCard.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(detailsCard, Priority.ALWAYS);
@@ -357,6 +385,9 @@ public class MyProfile extends VBox {
 
     private void loadProfile() {
 
+        nicField.setEditable(false);
+        editNicButton.setText("Edit NIC Number");
+
         studentId =
                 Session.getRegNo();
 
@@ -367,6 +398,14 @@ public class MyProfile extends VBox {
                     "No logged-in student found."
             );
 
+            return;
+        }
+
+        try {
+            ensureNicColumn();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert("Database error while preparing the NIC number field.");
             return;
         }
 
@@ -381,6 +420,7 @@ public class MyProfile extends VBox {
                     ug.batch,
                     ug.level,
                     ug.status,
+                    ug.nic,
                     d.department_name
                 FROM users u
                 JOIN undergraduates ug
@@ -450,6 +490,11 @@ public class MyProfile extends VBox {
                                 "status"
                         );
 
+                String nic =
+                        result.getString(
+                                "nic"
+                        );
+
                 String department =
                         result.getString(
                                 "department_name"
@@ -498,6 +543,9 @@ public class MyProfile extends VBox {
                 fields.get(8).setText(
                         safe(status)
                 );
+
+                fields.get(9).setText(safe(nic));
+                updateBirthdayDisplay(nic);
 
                 // Load profile picture
                 loadProfilePicture(
@@ -896,6 +944,127 @@ public class MyProfile extends VBox {
             showAlert(
                     "Database error while updating contact number."
             );
+        }
+    }
+
+    private void updateNicNumber() {
+        String nic = nicField.getText().trim().toUpperCase();
+        LocalDate birthDate = nic.isEmpty() ? null : birthDateFromNic(nic);
+
+        if (!nic.isEmpty() && birthDate == null) {
+            showAlert("Please enter a valid Sri Lankan NIC number.");
+            return;
+        }
+
+        String sql = """
+                UPDATE undergraduates
+                SET nic = ?
+                WHERE reg_no = ?
+                """;
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            if (nic.isEmpty()) {
+                statement.setNull(1, java.sql.Types.VARCHAR);
+            } else {
+                statement.setString(1, nic);
+            }
+            statement.setString(2, studentId);
+
+            if (statement.executeUpdate() > 0) {
+                nicField.setText(nic);
+                nicField.setEditable(false);
+                editNicButton.setText("Edit NIC Number");
+                updateBirthdayDisplay(nic);
+                showAlert("NIC number updated successfully.");
+            } else {
+                showAlert("NIC number update failed.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert("Database error while updating NIC number.");
+        }
+    }
+
+    private void updateBirthdayDisplay(String nic) {
+        LocalDate birthDate = nic == null || nic.isBlank() ? null : birthDateFromNic(nic);
+        fields.get(10).setText(birthDate == null ? "" : birthDate.toString());
+
+        if (birthDate == null) {
+            fields.get(11).clear();
+            return;
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDate nextBirthday = birthdayInYear(birthDate, today.getYear());
+        if (nextBirthday.isBefore(today)) {
+            nextBirthday = birthdayInYear(birthDate, today.getYear() + 1);
+        }
+        long daysRemaining = ChronoUnit.DAYS.between(today, nextBirthday);
+        fields.get(11).setText(daysRemaining + (daysRemaining == 1 ? " day" : " days"));
+    }
+
+    private LocalDate birthdayInYear(LocalDate birthDate, int year) {
+        if (birthDate.getMonthValue() == 2 && birthDate.getDayOfMonth() == 29
+                && !java.time.Year.isLeap(year)) {
+            return LocalDate.of(year, 3, 1);
+        }
+        return birthDate.withYear(year);
+    }
+
+    private LocalDate birthDateFromNic(String value) {
+        String nic = value.trim().toUpperCase();
+        try {
+            int year;
+            int dayOfYear;
+            if (nic.matches("\\d{12}")) {
+                year = Integer.parseInt(nic.substring(0, 4));
+                dayOfYear = Integer.parseInt(nic.substring(4, 7));
+            } else if (nic.matches("\\d{9}[VX]")) {
+                int twoDigitYear = Integer.parseInt(nic.substring(0, 2));
+                dayOfYear = Integer.parseInt(nic.substring(2, 5));
+                int currentTwoDigitYear = LocalDate.now().getYear() % 100;
+                year = twoDigitYear <= currentTwoDigitYear
+                        ? 2000 + twoDigitYear
+                        : 1900 + twoDigitYear;
+            } else {
+                return null;
+            }
+
+            if (dayOfYear > 500) {
+                dayOfYear -= 500;
+            }
+            if (dayOfYear < 1 || dayOfYear > (java.time.Year.isLeap(year) ? 366 : 365)) {
+                return null;
+            }
+
+            LocalDate birthDate = LocalDate.ofYearDay(year, dayOfYear);
+            if (birthDate.isAfter(LocalDate.now()) && nic.matches("\\d{9}[VX]")) {
+                birthDate = LocalDate.ofYearDay(year - 100, dayOfYear);
+            }
+            return birthDate.isAfter(LocalDate.now()) ? null : birthDate;
+        } catch (DateTimeException | NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private void ensureNicColumn() throws SQLException {
+        try (Connection connection = DBConnection.getConnection();
+             ResultSet columns = connection.getMetaData().getColumns(
+                     connection.getCatalog(), null, "undergraduates", "nic")) {
+            if (columns.next()) {
+                return;
+            }
+        }
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "ALTER TABLE undergraduates ADD COLUMN nic VARCHAR(12) NULL")) {
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            if (e.getErrorCode() != 1060) {
+                throw e;
+            }
         }
     }
 
