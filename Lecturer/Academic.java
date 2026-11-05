@@ -242,6 +242,13 @@ public final class Academic {
             return String.join(" and ", reasons);
         }
 
+        // Generates a detailed breakdown of the student's academic results.
+        // 1. Displays attendance sessions, medically covered absences, and final attendance percentage.
+        // 2. Displays CA points, percentage, and the number of entered assessments.
+        // 3. Checks whether CA marks are available before displaying CA details.
+        // 4. Displays the End Exam mark or indicates if it has not been uploaded.
+        // 5. Combines all details into a single String using new lines.
+
         public String breakdown() {
             String a = "Attendance: " + att.sessionsText() + " attended, " + att.covered()
                     + " absences covered by approved medicals = " + att.finalText()
