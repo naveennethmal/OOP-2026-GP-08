@@ -140,7 +140,7 @@ public class Timetable extends VBox {
         Object value = row.get(key);
         return value == null ? "-" : value.toString();
     }
-
+//fegfewgfewfweg
     private static String sessionLabel(String sessionType) {
         String normalized = sessionType == null ? "" : sessionType.toUpperCase();
         boolean hasTheory = normalized.contains("THEORY");
