@@ -129,6 +129,12 @@ public final class Academic {
                     .mapToDouble(mark -> mark * 0.05).average().orElse(0);
             return quizPoints + corePoints + assignmentPoints;
         }
+
+        // Counts the number of CA assessments that have marks entered.
+        // 1. For practical courses, counts entered Mid Exam and Project marks.
+        // 2. For non-practical courses, counts entered Quiz marks and core assessment marks.
+        // 3. Counts a maximum of three quizzes and one core assessment for non-practical courses.
+        // 4. Returns the total number of entered assessments.
         public int entered() {
             if (hasMidAndProject()) {
                 return (int) parts.stream().filter(p -> (p.name().equalsIgnoreCase("MID EXAM")
@@ -139,10 +145,29 @@ public final class Academic {
                     || p.name().equalsIgnoreCase("PROJECT")) && p.mark() != null);
             return (int) Math.min(3, quizzes) + (core ? 1 : 0);
         }
+
+        // Returns the required number of CA assessments.
+        // 1. Requires two assessments for practical courses.
+        // 2. Requires four assessments for non-practical courses.
         private int required() { return hasMidAndProject() ? 2 : 4; }
+
+        // Calculates the overall CA percentage.
+        // 1. Checks whether the total CA weight is zero.
+        // 2. Returns 0 if the total weight is zero to avoid division by zero.
+        // 3. Otherwise, calculates the percentage using earned CA points and total CA weight.
         public double percent() { return totalWeight == 0 ? 0 : earned() / totalWeight * 100; }
+
+        // Checks whether the student is eligible for CA.
+        // 1. Checks whether all required assessment marks have been entered.
+        // 2. Checks whether the total CA weight is greater than zero.
+        // 3. Checks whether the CA percentage is at least 50%.
+        // 4. Returns true only if all conditions are satisfied.
         public boolean eligible() { return entered() == required() && totalWeight > 0 && percent() >= CA_PASS; }
 
+        // Determines the student's CA status.
+        // 1. Returns "Pass" if the student satisfies all CA requirements.
+        // 2. Returns "Pending" if the required assessment marks are not fully entered.
+        // 3. Returns "EC" if all required marks are entered but the student is not eligible.
         public String status() {
             if (eligible()) return "Pass";
             if (entered() < required()) return "Pending";
