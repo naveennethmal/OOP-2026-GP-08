@@ -110,7 +110,7 @@ public class App extends BorderPane {
                 CoursesView::new
         );
 
-        // Notices
+        // Notices menu
         nav(
                 side,
                 group,
