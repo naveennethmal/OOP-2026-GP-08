@@ -15,7 +15,7 @@ import java.util.Map;
 import static Technical_Officer.TechnicianDAO.codeOf;
 import static Technical_Officer.TechnicianDAO.text;
 import static Technical_Officer.TechnicianDAO.toInt;
-
+//now changed
 // Add, edit and delete the medical submissions of the officer's department.
 public class MedicalView extends VBox {
 
