@@ -23,7 +23,7 @@ public class App extends BorderPane {
         VBox side = new VBox();
         side.getStyleClass().add("sidebar");
 
-        // Branding
+        // Branding icon for system
         Label logoIcon = new Label("🎓");
         logoIcon.getStyleClass().add("logo-icon");
 
@@ -101,7 +101,7 @@ public class App extends BorderPane {
                 DepartmentsView::new
         );
 
-        // Courses
+        // Courses menu
         nav(
                 side,
                 group,
@@ -110,7 +110,7 @@ public class App extends BorderPane {
                 CoursesView::new
         );
 
-        // Notices
+        // Notices menu
         nav(
                 side,
                 group,
@@ -128,7 +128,7 @@ public class App extends BorderPane {
                 TimetableView::new
         );
 
-        // My Profile
+        // My Profile u
         nav(
                 side,
                 group,
@@ -144,7 +144,7 @@ public class App extends BorderPane {
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
-        // Logout icon
+        // Logout icon and
         SVGPath icon = new SVGPath();
 
         icon.setContent(

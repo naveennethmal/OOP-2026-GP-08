@@ -17,7 +17,7 @@ import java.util.Map;
 
 import static Lecturer.LecturerUi.*;
 
-/** Displays per-student attendance and CA eligibility, CA details, and end-exam marks. */
+/** Displays per-stutendance and CA eligibility, CA details, and end-exam . */
 public class EligibilityView extends VBox {
 
     private final ComboBox<Course> courseBox = new ComboBox<>();
