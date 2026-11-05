@@ -14,7 +14,7 @@ import javafx.scene.shape.Circle;
 import java.io.File;
 import java.util.function.Function;
 
-/** Small helpers so every lecturer screen looks like the rest of the project (uses Resources/style.css). */
+/** Small helpers so every lecturer screen looks like the resthe project (uses Resources/style.css). */
 final class LecturerUi {
     private LecturerUi() {}
 
