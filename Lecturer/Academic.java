@@ -174,9 +174,9 @@ public final class Academic {
             return "EC";
         }
 
-        public String caText() { return String.format("%.2f / %.2f", earned(), totalWeight); }
-        public String percentText() { return String.format("%.2f%%", percent()); }
-        public String enteredText() { return entered() + " / " + required(); }
+        public String caText() { return String.format("%.2f / %.2f", earned(), totalWeight); } //show ca points
+        public String percentText() { return String.format("%.2f%%", percent()); } //show ca precentage
+        public String enteredText() { return entered() + " / " + required(); } //show the assesment that entered marks
     }
 
     /** CA points out of 40: practical courses use mid+project (25%+15%); other courses use quizzes, core and assignments. */
