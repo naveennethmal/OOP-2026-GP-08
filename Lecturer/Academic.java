@@ -248,7 +248,6 @@ public final class Academic {
         // 3. Checks whether CA marks are available before displaying CA details.
         // 4. Displays the End Exam mark or indicates if it has not been uploaded.
         // 5. Combines all details into a single String using new lines.
-
         public String breakdown() {
             String a = "Attendance: " + att.sessionsText() + " attended, " + att.covered()
                     + " absences covered by approved medicals = " + att.finalText()
@@ -260,6 +259,12 @@ public final class Academic {
             return a + "\n" + c + "\n" + e;
         }
 
+        // Provides formatted academic results and eligibility statuses for a table.
+        // 1. caPercentText() displays the CA percentage or "-" if CA marks are unavailable.
+        // 2. endExamText() displays the End Exam mark with two decimal places or "-" if unavailable.
+        // 3. attendanceOk() returns "Yes" or "No" based on attendance eligibility.
+        // 4. caOkText() returns "Yes", "Pending", or "No" based on CA status.
+        // 5. endExamOkText() returns "Pending", "Yes", or "No" based on the End Exam status.
         public String caPercentText() { return ca == null ? "-" : ca.percentText(); }
         public String endExamText() { return endMark == null ? "-" : String.format("%.2f", endMark); }
         public String attendanceOk() { return att.eligible() ? "Yes" : "No"; }
@@ -277,6 +282,7 @@ public final class Academic {
                                String creditsText, int level, int semester, double caEarned, double caWeight,
                                double finalWeight, Double finalMark, boolean retake, String gradeOverride) {
 
+        // Converts the credit value from String to int.
         public int credits() {
             try {
                 return Integer.parseInt(creditsText.trim());
