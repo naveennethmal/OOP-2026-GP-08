@@ -128,7 +128,7 @@ public class App extends BorderPane {
                 TimetableView::new
         );
 
-        // My Profile
+        // My Profile u
         nav(
                 side,
                 group,
