@@ -303,6 +303,16 @@ public final class Academic {
 
         public double caPercent() { return caWeight == 0 ? 0 : caEarned / caWeight * 100; }
 
+        // Determines the student's final grade based on academic results.
+        // 1. Returns the manually assigned grade if a grade override exists.
+        // 2. Assigns grade "C" if the student has a retake and a Final Exam mark.
+        // 3. Checks whether the student has failed the CA requirements.
+        // 4. Checks whether the student has failed the End Exam.
+        // 5. Returns "E" if both CA and End Exam are failed.
+        // 6. Returns "EC" if only the CA requirements are failed.
+        // 7. Returns "EE" if only the End Exam is failed.
+        // 8. Returns "-" if the Final Exam mark is not available.
+        // 9. Otherwise, determines the grade using the overall percentage.
         public String grade() {
             if (gradeOverride != null) return gradeOverride;
             if (retake && hasFinal()) return "C";
