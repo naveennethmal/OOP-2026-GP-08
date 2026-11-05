@@ -1,5 +1,8 @@
 package Lecturer;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDate;
 import Common.Session;
 import Common.AcademicResults;
 import Database.DBConnection;
@@ -30,7 +33,8 @@ public final class LecturerDAO {
         @Override public String toString() { return name + " (" + type + ", " + weight + "%)"; }
     }
 
-    public record Material(int id, String courseCode, String title, String type, String date, String filePath) {}
+    public record Material(int id, String courseCode, String title, String type, String date,
+                           String availableFrom, String availableUntil, String filePath) {}
 
     public record Student(String regNo, String name, String batch, String level, String semester,
                           String status, String email, String phone, String address) {}
@@ -181,27 +185,78 @@ public final class LecturerDAO {
     public static List<Material> materials(String courseCode) throws Exception {
         List<Material> list = new ArrayList<>();
         for (Map<String, Object> r : Db.query(
-                "SELECT material_id, course_code, title, type, uploaded_date, file_path FROM course_materials "
-                        + "WHERE course_code = ? ORDER BY uploaded_date DESC, material_id DESC", courseCode)) {
+                "SELECT material_id, course_code, title, type, uploaded_date, available_from, available_until, file_path "
+                        + "FROM course_materials WHERE course_code = ? ORDER BY uploaded_date DESC, material_id DESC",
+                courseCode)) {
             list.add(new Material(i(r, "material_id"), s(r, "course_code"), s(r, "title"), s(r, "type"),
-                    s(r, "uploaded_date"), s(r, "file_path")));
+                    s(r, "uploaded_date"), s(r, "available_from"), s(r, "available_until"), s(r, "file_path")));
         }
         return list;
     }
 
-    public static void addMaterial(String courseCode, String title, String type, String filePath) throws Exception {
+    public static void addMaterial(String courseCode, String title, String type, String filePath,
+                                   LocalDate from, LocalDate until) throws Exception {
         requireOwnCourse(courseCode);
-        Db.update("INSERT INTO course_materials (course_code, title, type, uploaded_date, file_path) "
-                + "VALUES (?, ?, ?, CURDATE(), ?)", courseCode, title, type, filePath);
+        validateMaterialDates(from, until);
+        Db.update("INSERT INTO course_materials (course_code, title, type, uploaded_date, available_from, available_until, file_path) "
+                + "VALUES (?, ?, ?, CURDATE(), COALESCE(?, CURDATE()), ?, ?)",
+                courseCode, title, type, sqlDate(from), sqlDate(until), filePath);
     }
 
-    public static void updateMaterial(int id, String title, String type, String filePath) throws Exception {
-        Db.update("UPDATE course_materials SET title = ?, type = ?, file_path = ? WHERE material_id = ? "
-                + "AND course_code IN " + myCourseCodes(), title, type, filePath, id);
+    public static void updateMaterial(int id, String title, String type, String filePath,
+                                      LocalDate from, LocalDate until) throws Exception {
+        validateMaterialDates(from, until);
+        Db.update("UPDATE course_materials SET title = ?, type = ?, file_path = ?, "
+                + "available_from = COALESCE(?, CURDATE()), available_until = ? "
+                + "WHERE material_id = ? AND course_code IN " + myCourseCodes(),
+                title, type, filePath, sqlDate(from), sqlDate(until), id);
     }
 
     public static void deleteMaterial(int id) throws Exception {
         Db.update("DELETE FROM course_materials WHERE material_id = ? AND course_code IN " + myCourseCodes(), id);
+    }
+
+    /**
+     * Availability dates of a material (both optional):
+     *  - no dates      : available now and never removed
+     *  - from only     : available from that day and never removed
+     *  - until only    : available from today and removed automatically after that day
+     *  - from + until  : available between the two dates and removed automatically after the end date
+     * Checks the two dates before anything is copied or saved.
+     */
+    public static void validateMaterialDates(LocalDate from, LocalDate until) {
+        if (until != null && until.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("The end date cannot be in the past.");
+        }
+        if (from != null && until != null && from.isAfter(until)) {
+            throw new IllegalArgumentException("The from date cannot be after the end date.");
+        }
+    }
+
+    private static java.sql.Date sqlDate(LocalDate d) {
+        return d == null ? null : java.sql.Date.valueOf(d);
+    }
+
+    /**
+     * Removes every material whose end date has passed (the row and the copied file).
+     * Returns how many were removed.
+     */
+    public static int purgeExpiredMaterials() throws Exception {
+        int removed = 0;
+        for (Map<String, Object> r : Db.query("SELECT material_id, file_path FROM course_materials "
+                + "WHERE available_until IS NOT NULL AND available_until < CURDATE()")) {
+            Db.update("DELETE FROM course_materials WHERE material_id = ?", i(r, "material_id"));
+            deleteStoredMaterialFile(s(r, "file_path"));
+            removed++;
+        }
+        return removed;
+    }
+
+    /** Only files this program copied into the materials folder are removed (never links or other paths). */
+    public static void deleteStoredMaterialFile(String filePath) throws Exception {
+        if (filePath != null && filePath.startsWith("materials/")) {
+            Files.deleteIfExists(Paths.get(filePath));
+        }
     }
 
     // ======================= assessments and marks =======================
