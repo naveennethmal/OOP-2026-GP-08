@@ -144,7 +144,7 @@ public class App extends BorderPane {
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
-        // Logout icon
+        // Logout icon and
         SVGPath icon = new SVGPath();
 
         icon.setContent(
