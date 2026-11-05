@@ -1,0 +1,353 @@
+Index: src/Main.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import javafx.application.Application;\r\nimport javafx.scene.Scene;\r\nimport javafx.stage.Stage;\r\n\r\n// Main does NOT extend Application, so no separate Launcher class is needed.\r\npublic class Main {\r\n\r\n    private static Scene scene;\r\n\r\n    public static void main(String[] args) {\r\n        Application.launch(App.class, args);\r\n    }\r\n\r\n    // Login screen ekata yanna\r\n    public static void showLogin() {\r\n        scene.setRoot(new Login(Main::showDashboard));\r\n    }\r\n\r\n    // Dashboard ekata yanna\r\n    public static void showDashboard() {\r\n        scene.setRoot(new Dashboard());\r\n    }\r\n\r\n    public static class App extends Application {\r\n\r\n        @Override\r\n        public void start(Stage stage) {\r\n            scene = new Scene(new Login(Main::showDashboard), 1400, 800);\r\n            scene.getStylesheets().add(\r\n                    getClass().getResource(\"/style.css\").toExternalForm());\r\n\r\n            stage.setTitle(\"TECLMS - Student Portal\");\r\n            stage.setMinWidth(1100);\r\n            stage.setMinHeight(700);\r\n            stage.setScene(scene);\r\n            stage.show();\r\n        }\r\n    }\r\n}
+===================================================================
+diff --git a/src/Main.java b/src/Main.java
+--- a/src/Main.java	(revision 0c899856c163e3a5d327f19488bd7634c7ddcbd2)
++++ b/src/Main.java	(date 1793375295614)
+@@ -1,8 +1,11 @@
+ import javafx.application.Application;
+ import javafx.scene.Scene;
+ import javafx.stage.Stage;
++import Student.Dashboard;
++import Technical_Officer.MainLayout;
++
+ 
+-// Main does NOT extend Application, so no separate Launcher class is needed.
++
+ public class Main {
+ 
+     private static Scene scene;
+@@ -11,23 +14,43 @@
+         Application.launch(App.class, args);
+     }
+ 
+-    // Login screen ekata yanna
++
+     public static void showLogin() {
+-        scene.setRoot(new Login(Main::showDashboard));
++        scene.setRoot(new Login(
++                Main::showDashboard,
++                Main::showAdmin,
++                Main::showTechnicalOfficer,
++                Main::showLecturer));
+     }
+ 
+-    // Dashboard ekata yanna
++
+     public static void showDashboard() {
+-        scene.setRoot(new Dashboard());
++        scene.setRoot(new Dashboard(Main::showLogin));
++    }
++
++    public static void showAdmin() {
++        scene.setRoot(new Admin.App(Main::showLogin));
++    }
++
++    public static void showTechnicalOfficer() {
++        scene.setRoot(new MainLayout(Main::showLogin));
++    }
++
++    public static void showLecturer() {
++        scene.setRoot(new Lecturer.LecturerLayout(Main::showLogin));
+     }
+ 
+     public static class App extends Application {
+ 
+         @Override
+         public void start(Stage stage) {
+-            scene = new Scene(new Login(Main::showDashboard), 1400, 800);
++            scene = new Scene(new Login(
++                    Main::showDashboard,
++                    Main::showAdmin,
++                    Main::showTechnicalOfficer,
++                    Main::showLecturer), 1400, 800);
+             scene.getStylesheets().add(
+-                    getClass().getResource("/style.css").toExternalForm());
++                    getClass().getResource("/Resources/style.css").toExternalForm());
+ 
+             stage.setTitle("TECLMS - Student Portal");
+             stage.setMinWidth(1100);
+@@ -36,4 +59,4 @@
+             stage.show();
+         }
+     }
+-}
+\ No newline at end of file
++}
+Index: src/Login.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import javafx.geometry.Pos;\r\nimport javafx.scene.control.*;\r\nimport javafx.scene.layout.*;\r\n\r\nimport java.sql.Connection;\r\nimport java.sql.PreparedStatement;\r\nimport java.sql.ResultSet;\r\nimport java.sql.SQLException;\r\n\r\npublic class Login extends HBox {\r\n\r\n    public Login(Runnable onSuccess) {\r\n\r\n        getStyleClass().add(\"login-root\");\r\n\r\n        // ---------------- Left branding panel ----------------\r\n        Label logoIcon = new Label(\"\uD83C\uDF93\");\r\n        logoIcon.getStyleClass().add(\"logo-icon\");\r\n\r\n        HBox logo = new HBox(\r\n                14,\r\n                logoIcon,\r\n                new VBox(\r\n                        Ui.text(\"TECLMS\", \"logo-title\"),\r\n                        Ui.text(\"Student Portal\", \"logo-sub\")\r\n                )\r\n        );\r\n\r\n        logo.setAlignment(Pos.CENTER_LEFT);\r\n\r\n        Label tagline = Ui.text(\r\n                \"Learn. Grow.\\nSucceed.\",\r\n                \"login-tagline\"\r\n        );\r\n\r\n        Label tagSub = Ui.text(\r\n                \"Access your courses, attendance, grades and\\nnotices all in one place.\",\r\n                \"login-tag-sub\"\r\n        );\r\n\r\n        VBox left = new VBox(\r\n                28,\r\n                logo,\r\n                tagline,\r\n                tagSub\r\n        );\r\n\r\n        left.getStyleClass().add(\"login-left\");\r\n        left.setAlignment(Pos.CENTER_LEFT);\r\n        left.setPrefWidth(540);\r\n        left.setMinWidth(420);\r\n\r\n        // ---------------- Right form card ----------------\r\n\r\n        TextField id = new TextField();\r\n        id.setPromptText(\"e.g. IT2024/001\");\r\n        id.getStyleClass().add(\"field\");\r\n\r\n        PasswordField pw = new PasswordField();\r\n        pw.setPromptText(\"Enter your password\");\r\n        pw.getStyleClass().add(\"field\");\r\n\r\n        CheckBox remember = new CheckBox(\"Remember me\");\r\n        remember.getStyleClass().add(\"login-check\");\r\n\r\n        Region sp = new Region();\r\n        HBox.setHgrow(sp, Priority.ALWAYS);\r\n\r\n        Label forgot = Ui.text(\r\n                \"Forgot password?\",\r\n                \"link\"\r\n        );\r\n\r\n        forgot.setOnMouseClicked(e -> {\r\n            // TODO: forgot password page\r\n        });\r\n\r\n        HBox options = new HBox(\r\n                remember,\r\n                sp,\r\n                forgot\r\n        );\r\n\r\n        options.setAlignment(Pos.CENTER_LEFT);\r\n\r\n        // Error message\r\n        Label error = Ui.text(\r\n                \"\",\r\n                \"login-error\"\r\n        );\r\n\r\n        error.setVisible(false);\r\n        error.setManaged(false);\r\n\r\n        // Login button\r\n        Button login = new Button(\"Sign In\");\r\n\r\n        login.getStyleClass().add(\"primary-btn\");\r\n        login.setMaxWidth(Double.MAX_VALUE);\r\n        login.setDefaultButton(true);\r\n\r\n        // ---------------- LOGIN ATTEMPT ----------------\r\n\r\n        Runnable attempt = () -> {\r\n\r\n            String studentId = id.getText().trim();\r\n            String password = pw.getText();\r\n\r\n            // Empty fields\r\n            if (studentId.isEmpty() || password.isEmpty()) {\r\n\r\n                showError(\r\n                        error,\r\n                        \"Please enter your Student ID and password.\"\r\n                );\r\n\r\n                return;\r\n            }\r\n\r\n            // Database authentication\r\n            String sql = \"\"\"\r\n                    SELECT\r\n                        u.user_id,\r\n                        u.full_name,\r\n                        u.role,\r\n                        ug.reg_no,\r\n                        ug.status\r\n                    FROM users u\r\n                    JOIN undergraduates ug\r\n                        ON u.user_id = ug.user_id\r\n                    WHERE ug.reg_no = ?\r\n                      AND u.password = ?\r\n                      AND u.role = 'Undergraduate'\r\n                    \"\"\";\r\n\r\n            try (\r\n                    Connection connection =\r\n                            DBConnection.getConnection();\r\n\r\n                    PreparedStatement statement =\r\n                            connection.prepareStatement(sql)\r\n            ) {\r\n\r\n                statement.setString(1, studentId);\r\n                statement.setString(2, password);\r\n\r\n                ResultSet result = statement.executeQuery();\r\n\r\n                if (result.next()) {\r\n\r\n                    // Login successful\r\n                    int userId =\r\n                            result.getInt(\"user_id\");\r\n\r\n                    String fullName =\r\n                            result.getString(\"full_name\");\r\n\r\n                    String regNo =\r\n                            result.getString(\"reg_no\");\r\n\r\n                    String status =\r\n                            result.getString(\"status\");\r\n\r\n                    // Check student status\r\n                    if (!status.equalsIgnoreCase(\"Active\")) {\r\n\r\n                        showError(\r\n                                error,\r\n                                \"Your student account is not active.\"\r\n                        );\r\n\r\n                        return;\r\n                    }\r\n\r\n                    System.out.println(\r\n                            \"LOGIN SUCCESSFUL\"\r\n                    );\r\n\r\n                    System.out.println(\r\n                            \"User ID: \" + userId\r\n                    );\r\n\r\n                    System.out.println(\r\n                            \"Student ID: \" + regNo\r\n                    );\r\n\r\n                    System.out.println(\r\n                            \"Student Name: \" + fullName\r\n                    );\r\n\r\n                    // Save logged-in student\r\n                    Session.setUser(userId,regNo,fullName);\r\n\r\n                    // Go to Dashboard\r\n                    onSuccess.run();\r\n\r\n                } else {\r\n\r\n                    showError(\r\n                            error,\r\n                            \"Invalid Student ID or password.\"\r\n                    );\r\n\r\n                    pw.clear();\r\n                }\r\n\r\n            } catch (SQLException e) {\r\n\r\n                e.printStackTrace();\r\n\r\n                showError(\r\n                        error,\r\n                        \"Database connection error. Please try again.\"\r\n                );\r\n            }\r\n        };\r\n\r\n        login.setOnAction(e -> attempt.run());\r\n\r\n        id.setOnAction(e -> pw.requestFocus());\r\n\r\n        pw.setOnAction(e -> attempt.run());\r\n\r\n        // ---------------- Form ----------------\r\n\r\n        VBox form = new VBox(\r\n                18,\r\n\r\n                Ui.text(\r\n                        \"Welcome back \uD83D\uDC4B\",\r\n                        \"page-title\"\r\n                ),\r\n\r\n                Ui.text(\r\n                        \"Sign in to continue to your student portal\",\r\n                        \"page-sub\"\r\n                ),\r\n\r\n                new VBox(\r\n                        6,\r\n                        Ui.text(\r\n                                \"Student ID\",\r\n                                \"field-label\"\r\n                        ),\r\n                        id\r\n                ),\r\n\r\n                new VBox(\r\n                        6,\r\n                        Ui.text(\r\n                                \"Password\",\r\n                                \"field-label\"\r\n                        ),\r\n                        pw\r\n                ),\r\n\r\n                options,\r\n                error,\r\n                login,\r\n\r\n                Ui.text(\r\n                        \"Need help? Contact the IT support desk.\",\r\n                        \"muted-small\"\r\n                )\r\n        );\r\n\r\n        form.getStyleClass().add(\"login-card\");\r\n        form.setMaxWidth(420);\r\n\r\n        StackPane right = new StackPane(form);\r\n\r\n        right.getStyleClass().add(\"login-right\");\r\n\r\n        HBox.setHgrow(\r\n                right,\r\n                Priority.ALWAYS\r\n        );\r\n\r\n        getChildren().addAll(\r\n                left,\r\n                right\r\n        );\r\n    }\r\n\r\n    private void showError(\r\n            Label label,\r\n            String message\r\n    ) {\r\n\r\n        label.setText(\r\n                \"⚠  \" + message\r\n        );\r\n\r\n        label.setVisible(true);\r\n        label.setManaged(true);\r\n    }\r\n}\r\n\r\n
+===================================================================
+diff --git a/src/Login.java b/src/Login.java
+--- a/src/Login.java	(revision 0c899856c163e3a5d327f19488bd7634c7ddcbd2)
++++ b/src/Login.java	(date 1792737857000)
+@@ -1,6 +1,11 @@
+ import javafx.geometry.Pos;
+ import javafx.scene.control.*;
+ import javafx.scene.layout.*;
++import Common.Session;
++import Database.DBConnection;
++import Common.PasswordResetRequests;
++import Student.Ui;
++import Technical_Officer.MainLayout;
+ 
+ import java.sql.Connection;
+ import java.sql.PreparedStatement;
+@@ -8,8 +13,29 @@
+ import java.sql.SQLException;
+ 
+ public class Login extends HBox {
++    private final Runnable studentSuccess;
++    private final Runnable adminSuccess;
++    private final Runnable technicalOfficerSuccess;
++    private final Runnable lecturerSuccess;
+ 
+     public Login(Runnable onSuccess) {
++        this(onSuccess, onSuccess, () -> {});
++    }
++
++    public Login(Runnable studentSuccess, Runnable adminSuccess) {
++        this(studentSuccess, adminSuccess, () -> {});
++    }
++
++    public Login(Runnable studentSuccess, Runnable adminSuccess, Runnable technicalOfficerSuccess) {
++        this(studentSuccess, adminSuccess, technicalOfficerSuccess, () -> {});
++    }
++
++    public Login(Runnable studentSuccess, Runnable adminSuccess, Runnable technicalOfficerSuccess,
++                 Runnable lecturerSuccess) {
++        this.studentSuccess = studentSuccess;
++        this.adminSuccess = adminSuccess;
++        this.technicalOfficerSuccess = technicalOfficerSuccess;
++        this.lecturerSuccess = lecturerSuccess;
+ 
+         getStyleClass().add("login-root");
+ 
+@@ -53,7 +79,7 @@
+         // ---------------- Right form card ----------------
+ 
+         TextField id = new TextField();
+-        id.setPromptText("e.g. IT2024/001");
++        id.setPromptText("Enter your username");
+         id.getStyleClass().add("field");
+ 
+         PasswordField pw = new PasswordField();
+@@ -66,13 +92,23 @@
+         Region sp = new Region();
+         HBox.setHgrow(sp, Priority.ALWAYS);
+ 
+-        Label forgot = Ui.text(
+-                "Forgot password?",
+-                "link"
+-        );
++        Label error = Ui.text("", "login-error");
++        error.setVisible(false);
++        error.setManaged(false);
+ 
++        Label forgot = Ui.text("Lost password?", "link");
+         forgot.setOnMouseClicked(e -> {
+-            // TODO: forgot password page
++            String username = id.getText().trim();
++            if (username.isEmpty()) {
++                showError(error, "Enter your username, then select Lost password?");
++                return;
++            }
++            try {
++                PasswordResetRequests.submit(username);
++                showNotice(error, "Lost-password message sent to the administrator.");
++            } catch (Exception ex) {
++                showError(error, "Could not send your message: " + ex.getMessage());
++            }
+         });
+ 
+         HBox options = new HBox(
+@@ -83,15 +119,6 @@
+ 
+         options.setAlignment(Pos.CENTER_LEFT);
+ 
+-        // Error message
+-        Label error = Ui.text(
+-                "",
+-                "login-error"
+-        );
+-
+-        error.setVisible(false);
+-        error.setManaged(false);
+-
+         // Login button
+         Button login = new Button("Sign In");
+ 
+@@ -103,15 +130,15 @@
+ 
+         Runnable attempt = () -> {
+ 
+-            String studentId = id.getText().trim();
++            String username = id.getText().trim();
+             String password = pw.getText();
+ 
+             // Empty fields
+-            if (studentId.isEmpty() || password.isEmpty()) {
++            if (username.isEmpty() || password.isEmpty()) {
+ 
+                 showError(
+                         error,
+-                        "Please enter your Student ID and password."
++                        "Please enter your username and password."
+                 );
+ 
+                 return;
+@@ -119,18 +146,11 @@
+ 
+             // Database authentication
+             String sql = """
+-                    SELECT
+-                        u.user_id,
+-                        u.full_name,
+-                        u.role,
+-                        ug.reg_no,
+-                        ug.status
++                    SELECT u.user_id, u.full_name, u.role, ug.reg_no, ug.status
+                     FROM users u
+-                    JOIN undergraduates ug
+-                        ON u.user_id = ug.user_id
+-                    WHERE ug.reg_no = ?
+-                      AND u.password = ?
+-                      AND u.role = 'Undergraduate'
++                    LEFT JOIN undergraduates ug ON u.user_id = ug.user_id
++                    WHERE u.password = ?
++                      AND u.user_name = ?
+                     """;
+ 
+             try (
+@@ -141,8 +161,8 @@
+                             connection.prepareStatement(sql)
+             ) {
+ 
+-                statement.setString(1, studentId);
+-                statement.setString(2, password);
++                statement.setString(1, password);
++                statement.setString(2, username);
+ 
+                 ResultSet result = statement.executeQuery();
+ 
+@@ -161,8 +181,9 @@
+                     String status =
+                             result.getString("status");
+ 
+-                    // Check student status
+-                    if (!status.equalsIgnoreCase("Active")) {
++                    if ("Undergraduate".equalsIgnoreCase(result.getString("role"))
++                            && (status == null || (!status.equalsIgnoreCase("Active")
++                            && !status.equalsIgnoreCase("Batch Missed")))) {
+ 
+                         showError(
+                                 error,
+@@ -188,17 +209,24 @@
+                             "Student Name: " + fullName
+                     );
+ 
+-                    // Save logged-in student
+                     Session.setUser(userId,regNo,fullName);
+ 
+-                    // Go to Dashboard
+-                    onSuccess.run();
++                    String role = result.getString("role");
++                    if ("Admin".equalsIgnoreCase(role)) {
++                        adminSuccess.run();
++                    } else if ("Technical Officer".equalsIgnoreCase(role)) {
++                        technicalOfficerSuccess.run();
++                    } else if ("Lecturer".equalsIgnoreCase(role)) {
++                        lecturerSuccess.run();
++                    } else {
++                        studentSuccess.run();
++                    }
+ 
+                 } else {
+ 
+                     showError(
+                             error,
+-                            "Invalid Student ID or password."
++                            "Invalid username or password."
+                     );
+ 
+                     pw.clear();
+@@ -239,7 +267,7 @@
+                 new VBox(
+                         6,
+                         Ui.text(
+-                                "Student ID",
++                                "Username",
+                                 "field-label"
+                         ),
+                         id
+@@ -287,12 +315,21 @@
+             String message
+     ) {
+ 
++        label.getStyleClass().remove("login-success");
++        if (!label.getStyleClass().contains("login-error")) label.getStyleClass().add("login-error");
+         label.setText(
+                 "⚠  " + message
+         );
+ 
++        label.setVisible(true);
++        label.setManaged(true);
++    }
++
++    private void showNotice(Label label, String message) {
++        label.getStyleClass().remove("login-error");
++        if (!label.getStyleClass().contains("login-success")) label.getStyleClass().add("login-success");
++        label.setText(message);
+         label.setVisible(true);
+         label.setManaged(true);
+     }
+ }
+-
+Index: .idea/libraries/lib.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><component name=\"libraryTable\">\r\n  <library name=\"lib\">\r\n    <CLASSES>\r\n      <root url=\"file://D:/software/openjfx-27_windows-x64_bin-sdk/javafx-sdk-27/lib\" />\r\n    </CLASSES>\r\n    <JAVADOC />\r\n    <SOURCES />\r\n    <jarDirectory url=\"file://D:/software/openjfx-27_windows-x64_bin-sdk/javafx-sdk-27/lib\" recursive=\"false\" />\r\n  </library>\r\n</component>
+===================================================================
+diff --git a/.idea/libraries/lib.xml b/.idea/libraries/lib.xml
+--- a/.idea/libraries/lib.xml	(revision 0c899856c163e3a5d327f19488bd7634c7ddcbd2)
++++ b/.idea/libraries/lib.xml	(date 1793212481804)
+@@ -1,10 +1,7 @@
+ <component name="libraryTable">
+   <library name="lib">
+-    <CLASSES>
+-      <root url="file://D:/software/openjfx-27_windows-x64_bin-sdk/javafx-sdk-27/lib" />
+-    </CLASSES>
++    <CLASSES />
+     <JAVADOC />
+     <SOURCES />
+-    <jarDirectory url="file://D:/software/openjfx-27_windows-x64_bin-sdk/javafx-sdk-27/lib" recursive="false" />
+   </library>
+ </component>
+\ No newline at end of file
+Index: LMS.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<module type=\"JAVA_MODULE\" version=\"4\">\r\n  <component name=\"NewModuleRootManager\" inherit-compiler-output=\"true\">\r\n    <exclude-output />\r\n    <content url=\"file://$MODULE_DIR$\">\r\n      <sourceFolder url=\"file://$MODULE_DIR$/src\" isTestSource=\"false\" />\r\n    </content>\r\n    <orderEntry type=\"inheritedJdk\" />\r\n    <orderEntry type=\"sourceFolder\" forTests=\"false\" />\r\n    <orderEntry type=\"library\" name=\"lib\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"mysql-connector-j-9.4.1\" level=\"project\" />\r\n  </component>\r\n</module>
+===================================================================
+diff --git a/LMS.iml b/LMS.iml
+--- a/LMS.iml	(revision 0c899856c163e3a5d327f19488bd7634c7ddcbd2)
++++ b/LMS.iml	(date 1793215755979)
+@@ -3,11 +3,12 @@
+   <component name="NewModuleRootManager" inherit-compiler-output="true">
+     <exclude-output />
+     <content url="file://$MODULE_DIR$">
+-      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
++      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" generated="true" />
+     </content>
+     <orderEntry type="inheritedJdk" />
+     <orderEntry type="sourceFolder" forTests="false" />
+     <orderEntry type="library" name="lib" level="project" />
+-    <orderEntry type="library" name="mysql-connector-j-9.4.1" level="project" />
++    <orderEntry type="library" name="lib1" level="project" />
++    <orderEntry type="library" name="mysql-connector-j-26.10.0" level="project" />
+   </component>
+ </module>
+\ No newline at end of file

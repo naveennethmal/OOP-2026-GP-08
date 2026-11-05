@@ -1,0 +1,91 @@
+Index: .idea/libraries/mysql_connector_j_9_4_1.xml
+===================================================================
+diff --git a/.idea/libraries/mysql_connector_j_9_4_1.xml b/.idea/libraries/mysql_connector_j_9_4_1.xml
+deleted file mode 100644
+--- a/.idea/libraries/mysql_connector_j_9_4_1.xml	(revision 0c899856c163e3a5d327f19488bd7634c7ddcbd2)
++++ /dev/null	(revision 0c899856c163e3a5d327f19488bd7634c7ddcbd2)
+@@ -1,9 +0,0 @@
+-<component name="libraryTable">
+-  <library name="mysql-connector-j-9.4.1">
+-    <CLASSES>
+-      <root url="jar://D:/software/mysql-connector-j-9.4.0.jar!/" />
+-    </CLASSES>
+-    <JAVADOC />
+-    <SOURCES />
+-  </library>
+-</component>
+\ No newline at end of file
+Index: .idea/AICommit.xml
+===================================================================
+diff --git a/.idea/AICommit.xml b/.idea/AICommit.xml
+new file mode 100644
+--- /dev/null	(date 1791965873000)
++++ b/.idea/AICommit.xml	(date 1791965873000)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="com.github.blarc.ai.commits.intellij.plugin.settings.ProjectSettings">
++    <option name="splitButtonActionSelectedLLMClientId" value="d45e12f3-8690-4e8c-b801-c447509cad3c" />
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/libraries/lib1.xml
+===================================================================
+diff --git a/.idea/libraries/lib1.xml b/.idea/libraries/lib1.xml
+new file mode 100644
+--- /dev/null	(date 1793212481807)
++++ b/.idea/libraries/lib1.xml	(date 1793212481807)
+@@ -0,0 +1,10 @@
++<component name="libraryTable">
++  <library name="lib1">
++    <CLASSES>
++      <root url="file://$PROJECT_DIR$/../../../../../javafx-sdk-27/lib" />
++    </CLASSES>
++    <JAVADOC />
++    <SOURCES />
++    <jarDirectory url="file://$PROJECT_DIR$/../../../../../javafx-sdk-27/lib" recursive="false" />
++  </library>
++</component>
+\ No newline at end of file
+Index: .idea/libraries/mysql_connector_j_26_10_0.xml
+===================================================================
+diff --git a/.idea/libraries/mysql_connector_j_26_10_0.xml b/.idea/libraries/mysql_connector_j_26_10_0.xml
+new file mode 100644
+--- /dev/null	(date 1793215755982)
++++ b/.idea/libraries/mysql_connector_j_26_10_0.xml	(date 1793215755982)
+@@ -0,0 +1,9 @@
++<component name="libraryTable">
++  <library name="mysql-connector-j-26.10.0">
++    <CLASSES>
++      <root url="jar://$USER_HOME$/Downloads/mysql-connector-j-26.10.0/mysql-connector-j-26.10.0/mysql-connector-j-26.10.0.jar!/" />
++    </CLASSES>
++    <JAVADOC />
++    <SOURCES />
++  </library>
++</component>
+\ No newline at end of file
+Index: .idea/dataSources.xml
+===================================================================
+diff --git a/.idea/dataSources.xml b/.idea/dataSources.xml
+new file mode 100644
+--- /dev/null	(date 1792043074000)
++++ b/.idea/dataSources.xml	(date 1792043074000)
+@@ -0,0 +1,17 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
++    <data-source source="LOCAL" name="lms@localhost" uuid="a254d15f-8fe3-4b92-accb-26a0e607b150">
++      <driver-ref>mysql.8</driver-ref>
++      <synchronize>true</synchronize>
++      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
++      <jdbc-url>jdbc:mysql://localhost:3306/lms</jdbc-url>
++      <jdbc-additional-properties>
++        <property name="com.intellij.clouds.kubernetes.db.host.port" />
++        <property name="com.intellij.clouds.kubernetes.db.enabled" value="false" />
++        <property name="com.intellij.clouds.kubernetes.db.container.port" />
++      </jdbc-additional-properties>
++      <working-dir>$ProjectFileDir$</working-dir>
++    </data-source>
++  </component>
++</project>
+\ No newline at end of file
