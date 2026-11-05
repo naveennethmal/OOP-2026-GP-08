@@ -101,7 +101,7 @@ public class App extends BorderPane {
                 DepartmentsView::new
         );
 
-        // Courses
+        // Courses menu
         nav(
                 side,
                 group,
