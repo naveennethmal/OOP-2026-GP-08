@@ -93,6 +93,7 @@ public class Login extends HBox {
         HBox.setHgrow(sp, Priority.ALWAYS);
 
         Label error = Ui.text("", "login-error");
+        error.setWrapText(true);
         error.setVisible(false);
         error.setManaged(false);
 
@@ -238,7 +239,8 @@ public class Login extends HBox {
 
                 showError(
                         error,
-                        "Database connection error. Please try again."
+                        "Database error (" + e.getSQLState() + "/" + e.getErrorCode()
+                                + "): " + (e.getMessage() == null ? "Unknown SQL error." : e.getMessage())
                 );
             }
         };

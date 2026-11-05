@@ -80,13 +80,16 @@ public final class TechnicianDAO {
 
     // Newest first. is_new = 1 when published within the last 7 days.
     public static List<Map<String, Object>> notices() throws Exception {
-        return Db.query("""
-                SELECT title, description,
-                       DATE_FORMAT(published_date, '%Y-%m-%d') AS published,
-                       DATEDIFF(CURDATE(), published_date) <= 7 AS is_new
-                FROM notices
-                ORDER BY published_date DESC, notice_id DESC
-                """);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> notice : Db.noticesForRole("Technical Officer")) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("title", notice.get("title"));
+            row.put("description", notice.get("description"));
+            row.put("published", notice.get("published_date"));
+            row.put("is_new", notice.get("is_new"));
+            result.add(row);
+        }
+        return result;
     }
 
     // ---------- timetable ----------

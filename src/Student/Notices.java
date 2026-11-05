@@ -20,10 +20,7 @@ public class Notices extends VBox {
                 "Latest announcements from the university"));
 
         try {
-            List<Map<String, Object>> notices = Db.query(
-                    "SELECT title, published_date, description "
-                            + "FROM notices "
-                            + "ORDER BY published_date DESC, notice_id DESC");
+            List<Map<String, Object>> notices = Db.noticesForRole("Undergraduate");
 
             if (notices.isEmpty()) {
                 getChildren().add(Ui.text(

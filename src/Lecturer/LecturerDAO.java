@@ -163,16 +163,14 @@ public final class LecturerDAO {
                         + "JOIN assessments a ON a.course_code = e.course_code "
                         + "LEFT JOIN marks m ON m.assessment_id = a.assessment_id AND m.reg_no = e.reg_no "
                         + "WHERE m.mark_id IS NULL AND e.course_code IN " + mine),
-                count("SELECT COUNT(*) FROM notices"));
+                Db.countNoticesForRole("Lecturer"));
     }
 
     // ======================= notices =======================
 
     public static List<Notice> notices() throws Exception {
         List<Notice> list = new ArrayList<>();
-        for (Map<String, Object> r : Db.query(
-                "SELECT notice_id, title, published_date, description FROM notices "
-                        + "ORDER BY published_date DESC, notice_id DESC")) {
+        for (Map<String, Object> r : Db.noticesForRole("Lecturer")) {
             list.add(new Notice(i(r, "notice_id"), s(r, "title"), s(r, "published_date"), s(r, "description")));
         }
         return list;

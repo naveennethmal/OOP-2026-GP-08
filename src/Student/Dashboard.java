@@ -515,8 +515,7 @@ public class Dashboard extends BorderPane {
                     "SELECT COUNT(*) total FROM enrollments WHERE reg_no = ?",
                     regNo);
 
-            int notices = number(
-                    "SELECT COUNT(*) total FROM notices");
+            int notices = Db.countNoticesForRole("Undergraduate");
 
             String attendance = decimal(
                     "SELECT COALESCE(ROUND("
@@ -578,9 +577,7 @@ public class Dashboard extends BorderPane {
         VBox card = new VBox(12, text("Recent notices", "card-title"));
         card.getStyleClass().add("card");
         try {
-            List<Map<String, Object>> notices = Db.query(
-                    "SELECT title, published_date, description FROM notices "
-                            + "ORDER BY published_date DESC, notice_id DESC LIMIT 3");
+            List<Map<String, Object>> notices = Db.latestNoticesForRole("Undergraduate", 3);
             if (notices.isEmpty()) {
                 card.getChildren().add(text("No notices are available.", "muted-small"));
             } else {
