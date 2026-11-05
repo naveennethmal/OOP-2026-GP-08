@@ -16,6 +16,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.Set;
 
@@ -38,6 +40,8 @@ public class MaterialsView extends VBox {
     private final TextField titleField = new TextField();
     private final ComboBox<String> typeBox = new ComboBox<>();
     private final TextField linkField = new TextField();
+    private final DatePicker fromPicker = new DatePicker();
+    private final DatePicker untilPicker = new DatePicker();
     private final Label fileLabel = new Label("No file chosen");
     private final Button chooseBtn = ghost("Choose file...");
     private final Label message = new Label();
@@ -57,12 +61,33 @@ public class MaterialsView extends VBox {
         table.getColumns().add(col("Title", Material::title, 240));
         table.getColumns().add(col("Type", Material::type, 110));
         table.getColumns().add(col("Uploaded", Material::date, 100));
-        table.getColumns().add(col("File / link", Material::filePath, 300));
+        table.getColumns().add(col("From", Material::availableFrom, 100));
+        table.getColumns().add(col("Until", MaterialsView::untilText, 110));
+        table.getColumns().add(col("Status", MaterialsView::availability, 150));
+        table.getColumns().add(col("File / link", Material::filePath, 260));
 
         typeBox.getItems().addAll("Lecture Notes", "Slides", "Tutorial", "Assignment", "Past Paper", "Other", "Link");
         typeBox.setValue("Lecture Notes");
         titleField.setPromptText("Title (e.g. Week 3 - Normalization slides)");
         linkField.setPromptText("https://...");
+
+        // Only the calendar is used (so no typing mistakes); "Clear dates" empties both pickers.
+        fromPicker.setEditable(false);
+        untilPicker.setEditable(false);
+        fromPicker.setPromptText("Optional");
+        untilPicker.setPromptText("Optional");
+        untilPicker.setDayCellFactory(p -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate d, boolean empty) {
+                super.updateItem(d, empty);
+                setDisable(empty || d.isBefore(LocalDate.now()));     // an end date cannot be in the past
+            }
+        });
+        Button clearDates = ghost("Clear dates");
+        clearDates.setOnAction(e -> { fromPicker.setValue(null); untilPicker.setValue(null); });
+        HBox dateRow = new HBox(14, field("Available from", fromPicker),
+                field("Available until (removed after this day)", untilPicker), clearDates);
+        dateRow.setAlignment(Pos.BOTTOM_LEFT);
 
         HBox fileRow = new HBox(10, chooseBtn, fileLabel);
         fileRow.setAlignment(Pos.CENTER_LEFT);
@@ -85,7 +110,10 @@ public class MaterialsView extends VBox {
         clear.setOnAction(e -> clearForm());
 
         VBox form = card(cardTitle("Material"), field("Title", titleField), field("Type", typeBox),
-                fileBox, linkBox, new HBox(10, add, update, delete, open, clear),
+                fileBox, linkBox, dateRow,
+                hint("No dates: always available. Only a from date: available from that day and never removed. "
+                        + "Only an end date: available from today and removed automatically after the end date."),
+                new HBox(10, add, update, delete, open, clear),
                 hint("Select a row in the table to change, delete or open it."), message);
         form.setMaxWidth(760);
 
@@ -115,8 +143,10 @@ public class MaterialsView extends VBox {
             return;
         }
         try {
+            int removed = LecturerDAO.purgeExpiredMaterials();      // materials past their end date go first
             table.setItems(FXCollections.observableArrayList(LecturerDAO.materials(c.code())));
             table.setPlaceholder(new Label("No materials added for this course yet"));
+            if (removed > 0) say(message, removed + " expired material(s) were removed automatically.", true);
         } catch (Exception e) {
             say(message, "Could not load materials: " + e.getMessage(), false);
         }
@@ -129,6 +159,8 @@ public class MaterialsView extends VBox {
         typeBox.setValue(m.type());
         chosenFile = null;
         if (m.type().equals("Link")) linkField.setText(m.filePath());
+        fromPicker.setValue(m.availableFrom().isEmpty() ? null : LocalDate.parse(m.availableFrom()));
+        untilPicker.setValue(m.availableUntil().isEmpty() ? null : LocalDate.parse(m.availableUntil()));
         fileLabel.setText("Current: " + m.filePath());
         message.setText("");
     }
@@ -139,6 +171,8 @@ public class MaterialsView extends VBox {
         titleField.clear();
         linkField.clear();
         typeBox.setValue("Lecture Notes");
+        fromPicker.setValue(null);
+        untilPicker.setValue(null);
         fileLabel.setText("No file chosen");
         table.getSelectionModel().clearSelection();
     }
@@ -179,6 +213,15 @@ public class MaterialsView extends VBox {
         if (title.isEmpty()) { say(message, "Title cannot be empty.", false); return; }
         if (title.length() > 150) { say(message, "Title is too long (maximum 150 characters).", false); return; }
 
+        LocalDate from = fromPicker.getValue();
+        LocalDate until = untilPicker.getValue();
+        try {
+            LecturerDAO.validateMaterialDates(from, until);          // before any file is copied
+        } catch (IllegalArgumentException e) {
+            say(message, e.getMessage(), false);
+            return;
+        }
+
         try {
             String path;
             boolean newFile = false;
@@ -201,10 +244,10 @@ public class MaterialsView extends VBox {
             }
 
             if (update) {
-                LecturerDAO.updateMaterial(selected.id(), title, type, path);
+                LecturerDAO.updateMaterial(selected.id(), title, type, path, from, until);
                 if (newFile || link) deleteStored(selected.filePath());   // old file goes only after the update worked
             } else {
-                LecturerDAO.addMaterial(c.code(), title, type, path);
+                LecturerDAO.addMaterial(c.code(), title, type, path, from, until);
             }
             clearForm();
             load();
@@ -233,11 +276,24 @@ public class MaterialsView extends VBox {
         }
     }
 
-    /** Only files this screen copied into the materials folder are removed. */
     private void deleteStored(String filePath) throws Exception {
-        if (filePath != null && filePath.startsWith("materials/")) {
-            Files.deleteIfExists(Paths.get(filePath));
+        LecturerDAO.deleteStoredMaterialFile(filePath);
+    }
+
+    /** Text for the Until column. */
+    private static String untilText(Material m) {
+        return m.availableUntil().isEmpty() ? "No end date" : m.availableUntil();
+    }
+
+    /** Text for the Status column. */
+    private static String availability(Material m) {
+        LocalDate today = LocalDate.now();
+        if (!m.availableFrom().isEmpty() && LocalDate.parse(m.availableFrom()).isAfter(today)) {
+            return "Starts " + m.availableFrom();
         }
+        if (m.availableUntil().isEmpty()) return "Available";
+        long days = ChronoUnit.DAYS.between(today, LocalDate.parse(m.availableUntil()));
+        return days == 0 ? "Last day today" : "Removed in " + days + " day(s)";
     }
 
     private void open() {
