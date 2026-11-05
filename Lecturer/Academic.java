@@ -205,7 +205,11 @@ public final class Academic {
 
     // --------------------------------------------------------------- overall
 
-    /** Eligibility requires attendance, at least 20/40 CA, and at least 35% in the end exam. */
+    // Checks the CA and End Exam requirements.
+    // 1. caOk() checks whether the CA requirements are satisfied.
+    // 2. caPending() checks whether CA marks are missing or not fully entered.
+    // 3. endPending() checks whether the End Exam mark has not been uploaded.
+    // 4. endOk() checks whether the End Exam mark is at least 35%.
     public record Overall(Attendance att, Ca ca, Double endMark) {
 
         private boolean caOk() { return ca != null && ca.eligible(); }
