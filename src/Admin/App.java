@@ -23,7 +23,7 @@ public class App extends BorderPane {
         VBox side = new VBox();
         side.getStyleClass().add("sidebar");
 
-        // Branding
+        // Branding icon for system
         Label logoIcon = new Label("🎓");
         logoIcon.getStyleClass().add("logo-icon");
 
